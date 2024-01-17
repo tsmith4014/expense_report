@@ -88,3 +88,44 @@ sudo systemctl start expense-report-webapp.service
 # Checking the service status doesn't require sudo
 
 systemctl status expense-report-webapp.service
+
+## Troubleshooting
+
+### SELinux Configuration
+
+- If encountering issues related to SELinux (like inability to execute scripts), check SELinux status:
+  ```bash
+  sestatus
+  ```
+- Temporarily set SELinux to permissive:
+  ```bash
+  sudo setenforce 0
+  ```
+- Try starting the service again:
+  ```bash
+  sudo systemctl start expense-report-webapp.service
+  ```
+
+### Service Failure
+
+- Check systemd service logs for errors:
+  ```bash
+  sudo journalctl -u expense-report-webapp.service
+  ```
+- Verify the Gunicorn executable path in the service file.
+
+### Dependency Issues
+
+- If Python packages fail to install, check for missing dependencies:
+  ```bash
+  sudo yum install python38-devel
+  ```
+
+## Application Updates
+
+- Restart the application service:
+  ```bash
+  sudo systemctl restart expense-report-webapp.service
+  ```
+
+---

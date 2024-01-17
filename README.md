@@ -69,7 +69,7 @@ This README document outlines the steps to deploy a Flask-based web application,
 4. **Create a Python Virtual Environment**
 
    ```bash
-   VENV_PATH="/home/opc/expense_report/venv"
+   VENV_PATH="/home/opc/venv"
    python3.8 -m venv venv
    source $VENV_PATH/bin/activate
    pip install -r requirements.txt
@@ -96,31 +96,34 @@ Gunicorn serves as the WSGI server for the Flask application.
    ```bash
    SYSTEMD_SERVICE_FILE="/etc/systemd/system/expense-report-webapp.service"
    sudo bash -c "cat > $SYSTEMD_SERVICE_FILE" << EOF
-   [Unit]
-   Description=Gunicorn instance to serve expense-report-webapp
-   Wants=network.target
-   After=syslog.target network-online.target
-
-   [Service]
-   Type=simple
-   WorkingDirectory=$WORK_DIR
-   Environment="PATH=$VENV_PATH/bin"
-   ExecStart=$VENV_PATH/bin/gunicorn -w 4 -b 0.0.0.0:8000 app:app
-   Restart=always
-   RestartSec=10
-
-   [Install]
-   WantedBy=multi-user.target
-   EOF
    ```
+
+[Unit]
+Description=Gunicorn instance to serve expense-report app
+Wants=network.target
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/opc/expense_report
+Environment="PATH=/home/opc/venv/bin"
+ExecStart=/home/opc/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 expense_report.app:app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+````
 
 2. **Enable and Start the Service**
 
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable expense-report-webapp.service
-   sudo systemctl start expense-report-webapp.service
-   ```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable expense-report-webapp.service
+sudo systemctl start expense-report-webapp.service
+````
 
 3. **Check Service Status**
    ```bash
