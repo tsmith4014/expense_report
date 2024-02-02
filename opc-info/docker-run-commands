@@ -1,0 +1,1 @@
+sudo docker run -p 8000:8000 tsmith4014/expense_report:latest
