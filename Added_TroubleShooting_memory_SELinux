@@ -1,0 +1,102 @@
+Certainly! Here's a comprehensive overview of the troubleshooting steps and code snippets we've discussed to address your issues, including memory management, SELinux permissions, and enabling services on specific ports:
+
+### Monitoring Memory Usage and Managing Swap Space
+
+**Monitoring Memory and Processes:**
+
+- To monitor memory usage and processes, use `top` or `htop`:
+  ```sh
+  top
+  ```
+  ```sh
+  sudo apt-get install htop  # On Debian/Ubuntu
+  sudo yum install htop  # On CentOS/RHEL
+  sudo dnf install htop  # On Fedora/Oracle Linux
+  htop
+  ```
+
+**Adding Swap Space:**
+
+- To add swap space, if needed:
+  ```sh
+  sudo fallocate -l 1G /swapfile  # Create a 1GB swap file
+  sudo chmod 600 /swapfile  # Set correct permissions
+  sudo mkswap /swapfile  # Mark file as swap space
+  sudo swapon /swapfile  # Enable swap space
+  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab  # Make swap permanent
+  ```
+
+### Managing Firewalls and SELinux for Application Access
+
+**Adjusting Firewall Settings:**
+
+- To open a port (e.g., 8000) in the firewall:
+  ```sh
+  sudo firewall-cmd --zone=public --add-port=8000/tcp --permanent
+  sudo firewall-cmd --reload
+  ```
+
+**SELinux Troubleshooting:**
+
+- To check if SELinux is blocking your application or service:
+
+  ```sh
+  sudo sealert -a /var/log/audit/audit.log
+  ```
+
+- Temporarily set SELinux to permissive mode to test if it's causing the issue:
+
+  ```sh
+  sudo setenforce 0
+  ```
+
+- To permanently change SELinux to permissive mode, edit `/etc/selinux/config` and set `SELINUX=permissive`, then reboot.
+
+- To add a port (e.g., 8000) to SELinux allowed ports for HTTP services:
+  ```sh
+  sudo semanage port -a -t http_port_t -p tcp 8000
+  ```
+
+**Creating and Loading a Custom SELinux Policy Module:**
+
+- Install necessary tools and generate a policy module from audit logs:
+
+  ```sh
+  sudo dnf install policycoreutils-python-utils  # Install audit2allow tool
+  grep gunicorn /var/log/audit/audit.log | sudo audit2allow -M mygunicornpolicy  # Generate policy
+  sudo semodule -i mygunicornpolicy.pp  # Load the policy module
+  ```
+
+- Re-enable SELinux enforcing mode:
+  ```sh
+  sudo setenforce 1
+  ```
+
+### General System Troubleshooting and Optimization
+
+**Optimizing System Services and Processes:**
+
+- Review running services and processes to identify those consuming excessive resources:
+
+  ```sh
+  ps aux --sort=-%mem | head  # Find top memory-consuming processes
+  systemctl list-units --type=service --state=running  # List running services
+  ```
+
+- Consider stopping or disabling non-essential services:
+  ```sh
+  sudo systemctl stop [service_name]
+  sudo systemctl disable [service_name]
+  ```
+
+**Addressing Issues with Gunicorn and Flask Applications:**
+
+- Ensure Gunicorn is configured correctly to bind to the correct port as per `gunicorn_config.py`:
+
+  ```sh
+  gunicorn -c gunicorn_config.py app:app
+  ```
+
+- For applications running under SELinux enforcement, ensure the executable and its dependencies are correctly labeled or that appropriate SELinux policies are in place to allow the necessary operations.
+
+These steps encompass a broad approach to troubleshooting and resolving the issues you've encountered, including memory management, SELinux permissions, firewall configurations, and application deployment considerations.
