@@ -132,7 +132,7 @@ systemctl status expense-report-webapp.service
 
 ---
 
-Certainly! Below is a detailed markdown document summarizing the steps for installing Docker on Oracle Linux 8, managing Docker as a non-root user, and resolving common permissions issues, along with how to push an image to Docker Hub.
+So, binding to 0.0.0.0 inside the Docker container is generally safe and recommended. However, you should be careful when mapping the container's ports to the host's ports, especially when running on a host that's exposed to the internet.Below is a detailed markdown document summarizing the steps for installing Docker on Oracle Linux 8, managing Docker as a non-root user, and resolving common permissions issues, along with how to push an image to Docker Hub.
 
 ````markdown
 # Docker Setup and Management on Oracle Linux 8
