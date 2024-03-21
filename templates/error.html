@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Error Occurred</title>
+    <style>
+      body {
+        background-color: #333;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+      }
+      .error-container {
+        max-width: 600px;
+      }
+      button {
+        background-color: #555;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="error-container">
+      <h2>Oops! Something went wrong.</h2>
+      <p>
+        Ensure correct date selection and please try submitting the form again.
+      </p>
+      <button onclick="window.location.href='/';">Back to Form</button>
+    </div>
+  </body>
+</html>

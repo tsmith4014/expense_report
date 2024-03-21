@@ -10,6 +10,23 @@ from populate_excel import populate_template
 
 app = Flask(__name__)
 
+@app.errorhandler(Exception)
+def handle_exception(error):
+    # You can log the error here if you'd like to review it in your server logs
+    print(f"An error occurred: {error}")  # Example of simple logging
+    
+    # Return the custom error page
+    return render_template("error.html"), 500
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/instructions')
+def instructions():
+    return render_template('instructions.html')
+
+
 @app.route('/', methods=['GET'])
 def form():
     # Render a form for inputting data
@@ -27,7 +44,11 @@ def generate_excel():
     data = {
         'school': request.form['school'],
         'period_ending': request.form['periodEnding'],
-        'trip_purpose': request.form['tripPurpose']
+        'trip_purpose': request.form['tripPurpose'],
+        'travel': request.form.get('travel'),
+        'travel_start_date': request.form.get('travelStartDate'),
+        'travel_end_date': request.form.get('travelEndDate'),
+        'employee_department': request.form['employeeDepartment'] 
     }
 
     # Define paths

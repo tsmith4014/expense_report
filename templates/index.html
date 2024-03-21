@@ -5,21 +5,24 @@
     <title>Expense Form Populator</title>
     <style>
       body {
-        background-color: #333; /* Dark background */
-        color: #fff; /* Light text color for visibility */
+        background-color: #333;
+        color: #fff;
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
+      }
+      .content {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
+        flex-direction: column;
       }
       form {
         width: 80%;
         max-width: 600px;
         padding: 20px;
-        background-color: #444; /* Slightly lighter background for the form */
+        background-color: #444;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
@@ -27,9 +30,12 @@
         display: block;
         margin-top: 20px;
       }
+      .checkbox-label {
+        display: inline-block;
+        margin-right: 10px;
+      }
       input[type="text"],
-      input[type="date"],
-      button {
+      input[type="date"] {
         width: 100%;
         padding: 10px;
         margin-top: 5px;
@@ -38,52 +44,118 @@
         background-color: #222;
         color: #ddd;
       }
+      input[type="checkbox"] {
+        transform: scale(1.5);
+        margin-left: 5px;
+        vertical-align: middle;
+        margin-top: 20px;
+      }
       button {
         background-color: #555;
         cursor: pointer;
         margin-top: 20px;
+        width: 100%;
       }
       button:hover {
         background-color: #666;
       }
+      .form-group {
+        margin-bottom: 20px;
+      }
     </style>
   </head>
   <body>
-    <form id="expenseForm" action="/generate-excel" method="post">
-      <label for="school">School:</label>
-      <input type="text" name="school" placeholder="School" required />
+    <div class="content">
+      <form action="/generate-excel" method="post">
+        <div class="form-group">
+          <label for="employeeDepartment">Employee/Department:</label>
+          <input
+            type="text"
+            name="employeeDepartment"
+            placeholder="Employee/Department"
+            required
+          />
+        </div>
 
-      <label for="periodEnding">Period Ending (YYYY-MM-DD):</label>
-      <input type="date" name="periodEnding" required />
+        <div class="form-group">
+          <label for="school">School:</label>
+          <input type="text" name="school" placeholder="School" required />
+        </div>
 
-      <label for="tripPurpose">Trip Purpose:</label>
-      <input
-        type="text"
-        name="tripPurpose"
-        placeholder="Trip Purpose"
-        required
-      />
+        <div class="form-group">
+          <label for="periodEnding">Period Ending (MM-DD-YYYY):</label>
+          <input type="date" name="periodEnding" required />
+        </div>
 
-      <!-- Static Information Section -->
-      <div
-        style="
-          margin-top: 30px;
-          padding: 20px;
-          background-color: #555;
-          border-radius: 8px;
-        "
-      >
-        <h2>Distance Information</h2>
-        <p>Distance from 603 Maryland, Erie PA 16505 to:</p>
-        <ul>
-          <li>2023 IRS Gas Rate: 0.655</li>
-          <li>Buffalo NY Airport: 108 miles</li>
-          <li>Pittsburgh PA Airport: 136 miles</li>
-          <li>Cleveland OH Airport: 111 miles</li>
-        </ul>
-      </div>
+        <div class="form-group">
+          <label for="tripPurpose">Trip Purpose:</label>
+          <input
+            type="text"
+            name="tripPurpose"
+            placeholder="Trip Purpose"
+            required
+          />
+        </div>
 
-      <button type="submit">Generate Excel</button>
-    </form>
+        <div class="form-group" style="align-items: center; display: flex">
+          <label for="travel" class="checkbox-label"
+            >Travel (includes per diem):</label
+          >
+          <input
+            type="checkbox"
+            name="travel"
+            value="yes"
+            id="travelCheck"
+            onclick="toggleTravelDates()"
+          />
+        </div>
+
+        <div id="travelDates" style="display: none">
+          <div class="form-group">
+            <label for="travelStartDate">Travel Start Date (MM-DD-YYYY):</label>
+            <input type="date" name="travelStartDate" />
+          </div>
+          <div class="form-group">
+            <label for="travelEndDate">Travel End Date (MM-DD-YYYY):</label>
+            <input type="date" name="travelEndDate" />
+          </div>
+        </div>
+
+        <button type="submit">Generate Excel</button>
+      </form>
+
+      <footer style="margin-top: 20px; text-align: center">
+        <a href="/privacy" style="color: #ddd; text-decoration: none"
+          >Privacy Policy</a
+        >
+        |
+        <a href="/instructions" style="color: #ddd; text-decoration: none"
+          >Instructions</a
+        >
+      </footer>
+    </div>
+
+    <script>
+      function toggleTravelDates() {
+        var checkBox = document.getElementById("travelCheck");
+        var travelDates = document.getElementById("travelDates");
+        var startDateInput = document.querySelector(
+          'input[name="travelStartDate"]'
+        );
+        var endDateInput = document.querySelector(
+          'input[name="travelEndDate"]'
+        );
+
+        if (checkBox.checked) {
+          travelDates.style.display = "block";
+          startDateInput.required = true;
+          endDateInput.required = true;
+        } else {
+          travelDates.style.display = "none";
+          startDateInput.required = false;
+          endDateInput.required = false;
+        }
+      }
+    </script>
   </body>
 </html>

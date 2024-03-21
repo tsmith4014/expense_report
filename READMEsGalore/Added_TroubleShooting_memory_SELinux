@@ -1,4 +1,4 @@
-Certainly! Here's a comprehensive overview of the troubleshooting steps and code snippets we've discussed to address your issues, including memory management, SELinux permissions, and enabling services on specific ports:
+Here's a comprehensive overview of the troubleshooting steps and code snippets we've discussed to address your issues, including memory management, SELinux permissions, and enabling services on specific ports:
 
 ### Monitoring Memory Usage and Managing Swap Space
 
