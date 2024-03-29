@@ -8,40 +8,21 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
   IMAGE_NAME: tsmith4014/expense_report
-  IMAGE_TAG: latest
+  IMAGE_TAG: 1.1  # Updated to use the existing tag on Docker Hub
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-20.04
+  deploy:
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
 
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
-
-    - name: Pull the base Docker image to ensure it's up to date
-      run: docker pull python:3.8-slim
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-        build-args: |
-          DOCKER_BUILDKIT=1
-        no-cache: true
-        pull: true
-        progress: plain
 
     - name: Deploy to Oracle Compute Instance via SSH
       uses: appleboy/ssh-action@master
