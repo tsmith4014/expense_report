@@ -8,15 +8,18 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
   IMAGE_NAME: tsmith4014/expense_report
-  IMAGE_TAG: latest # Consider using a more dynamic tagging strategy, like Git commit SHA
+  IMAGE_TAG: latest
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-20.04 # Specify a different version of Ubuntu runner if you were previously using 'ubuntu-latest'
+    runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
     - name: Login to DockerHub
       uses: docker/login-action@v1
@@ -28,9 +31,17 @@ jobs:
       run: docker pull python:3.8-slim
 
     - name: Build and push Docker image
-      run: |
-        docker build --no-cache --pull --progress=plain -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
-        docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+        build-args: |
+          DOCKER_BUILDKIT=1
+        no-cache: true
+        pull: true
+        progress: plain
 
     - name: Deploy to Oracle Compute Instance via SSH
       uses: appleboy/ssh-action@master
