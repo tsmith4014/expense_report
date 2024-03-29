@@ -1,4 +1,3 @@
-this is key for oracle cloud for my instance
 the app will be aval at port 8000
 selfs.key = key for this oracle instance
 ssh -i <private_key_file> <username>@<public-ip-address>
