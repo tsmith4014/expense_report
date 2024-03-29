@@ -8,11 +8,11 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
   IMAGE_NAME: tsmith4014/expense_report
-  IMAGE_TAG: 1.1  # Updated to use the existing tag on Docker Hub
+  IMAGE_TAG: latest # Consider using a more dynamic tagging strategy, like Git commit SHA
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: ubuntu-20.04 # Specify a different version of Ubuntu runner if you were previously using 'ubuntu-latest'
 
     steps:
     - name: Checkout code
@@ -23,6 +23,14 @@ jobs:
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
+
+    - name: Pull the base Docker image to ensure it's up to date
+      run: docker pull python:3.8-slim
+
+    - name: Build and push Docker image
+      run: |
+        docker build --no-cache --pull --progress=plain -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+        docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
     - name: Deploy to Oracle Compute Instance via SSH
       uses: appleboy/ssh-action@master
