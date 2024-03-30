@@ -10,7 +10,7 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
   IMAGE_NAME: tsmith4014/expense_report
-  IMAGE_TAG: mileage  # Updated to use the existing tag on Docker Hub
+  IMAGE_TAG: mergecenter  # Updated to use the existing tag on Docker Hub
 
 jobs:
   deploy:
