@@ -1,3 +1,6 @@
+#For some reason the github actions env is not able to build the image correctly, it builds the image and the container gets redeployed with the new image and the sites launches but when the user makes a form submission we get an error.  Something within the github env is not the same as my local env.  I will need to troubleshoot this issue.
+
+
 name: CI/CD Pipeline
 
 on:
