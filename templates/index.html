@@ -121,6 +121,33 @@
           </div>
         </div>
 
+        <!-- Inside your <form> tag, add the following HTML for the new mileage option -->
+
+        <div class="form-group" style="align-items: center; display: flex">
+          <label for="mileage" class="checkbox-label">Mileage:</label>
+          <input
+            type="checkbox"
+            name="mileage"
+            id="mileageCheck"
+            onclick="toggleMileageInput()"
+          />
+        </div>
+
+        <div id="mileageInput" style="display: none">
+          <div class="form-group">
+            <label for="mileageDate">Mileage Date (MM-DD-YYYY):</label>
+            <input type="date" name="mileageDate" />
+          </div>
+          <div class="form-group">
+            <label for="milesTraveled">Miles Traveled:</label>
+            <input
+              type="number"
+              name="milesTraveled"
+              placeholder="Miles Traveled"
+            />
+          </div>
+        </div>
+
         <button type="submit">Generate Excel</button>
       </form>
 
@@ -154,6 +181,16 @@
           travelDates.style.display = "none";
           startDateInput.required = false;
           endDateInput.required = false;
+        }
+      }
+
+      function toggleMileageInput() {
+        var checkBox = document.getElementById("mileageCheck");
+        var mileageInput = document.getElementById("mileageInput");
+        if (checkBox.checked) {
+          mileageInput.style.display = "block";
+        } else {
+          mileageInput.style.display = "none";
         }
       }
     </script>

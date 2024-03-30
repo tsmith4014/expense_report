@@ -1,9 +1,30 @@
-#import openpyxl
+#populate_excel.py
 import openpyxl
 from openpyxl.styles import Alignment
 from openpyxl.drawing.image import Image
 from datetime import datetime, timedelta
 import os
+
+
+def populate_mileage(sheet, mileage_date_str, mileage_amount, period_ending):
+    """
+    Populates the Excel sheet with mileage information.
+    """
+    if not mileage_date_str or not mileage_amount:
+        return  # Skip if mileage data is incomplete
+
+    # Convert string dates to datetime objects
+    mileage_date = datetime.strptime(mileage_date_str, '%Y-%m-%d').date()
+    period_ending_date = datetime.strptime(period_ending, '%Y-%m-%d').date()
+
+    # Calculate the difference in days between the mileage date and the period ending date
+    day_difference = (period_ending_date - mileage_date).days
+
+    # Mileage should be entered in row 9 from column D to J (4 to 10) corresponding to Sunday (0) to Saturday (6)
+    if 0 <= day_difference <= 6:
+        column_index = 10 - day_difference  # D9 (column 4) for Sunday to J9 (column 10) for Saturday
+        sheet.cell(row=9, column=column_index).value = mileage_amount
+
 
 def populate_template(data, template_path, output_path):
     """
@@ -44,6 +65,12 @@ def populate_template(data, template_path, output_path):
         # Handling travel dates for per diem fields
         if 'yes' == data.get('travel') and all(data.get(key) for key in ['travel_start_date', 'travel_end_date']):
             populate_travel_dates(sheet, data['travel_start_date'], data['travel_end_date'])
+
+        # Handling mileage data
+        # Populate mileage if data is provided
+        if data.get('mileage') == 'on':  # Assuming the checkbox returns 'on' when checked
+            populate_mileage(sheet, data.get('mileage_date'), data.get('mileage_amount'), data['period_ending'])
+
 
         # Save the populated template to a new file
         wb.save(output_path)
