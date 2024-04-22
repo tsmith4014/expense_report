@@ -1,4 +1,27 @@
-#For some reason the github actions env is not able to build the image correctly, it builds the image and the container gets redeployed with the new image and the sites launches but when the user makes a form submission we get an error.  Something within the github env is not the same as my local env.  I will need to troubleshoot this issue.  but for now this works fine as a deployment pipeline.  I just have to build and push the image manually to dockerhub using buildex and docker push...docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:1.1 . --push
+# CI/CD Pipeline
+# This GitHub Actions workflow is responsible for deploying the expense_report application to an Oracle Compute Instance via SSH.
+# It listens for push events on the main branch and triggers the deployment process.
+# The workflow performs the following steps:
+# 1. Checks out the code from the repository.
+# 2. Logs in to DockerHub using the provided credentials.
+# 3. Deploys the application to the Oracle Compute Instance by executing SSH commands.
+#    - Stops any running containers.
+#    - Prunes the Docker system to remove unused images and containers.
+#    - Pulls the specified Docker image from DockerHub.
+#    - Runs a new container with the pulled image, exposing port 8001.
+#
+# Environment Variables:
+# - DOCKER_USERNAME: The username for DockerHub authentication.
+# - DOCKER_PASSWORD: The password or access token for DockerHub authentication.
+# - IMAGE_NAME: The name of the Docker image to deploy.
+# - IMAGE_TAG: The tag of the Docker image to deploy.
+#
+# Secrets:
+# - DOCKER_USERNAME: The DockerHub username stored as a secret in the GitHub repository.
+# - DOCKERHUB_TOKEN: The DockerHub access token stored as a secret in the GitHub repository.
+# - ORACLE_COMPUTE_HOST: The hostname or IP address of the Oracle Compute Instance stored as a secret in the GitHub repository.
+# - ORACLE_COMPUTE_USERNAME: The username for SSH authentication to the Oracle Compute Instance stored as a secret in the GitHub repository.
+# - ORACLE_COMPUTE_SSH_KEY: The private SSH key for authentication to the Oracle Compute Instance stored as a secret in the GitHub repository.
 
 name: CI/CD Pipeline
 
