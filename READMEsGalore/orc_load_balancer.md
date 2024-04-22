@@ -68,8 +68,8 @@ Log in to the OCI Console with your credentials and navigate to the **Networking
 
 By following these instructions, you've successfully configured a public HTTP load balancer in OCI, enhancing the scalability and availability of your application served via Nginx.
 
-Certainly! Below is a detailed `README.md` template that documents the troubleshooting process and progress you've made with configuring and debugging a load balancer setup in Oracle Cloud Infrastructure (OCI), focusing on backend sets, health checks, and subnet configurations.
 
+---
 ---
 
 # OCI Load Balancer and Backend Set Configuration Guide
