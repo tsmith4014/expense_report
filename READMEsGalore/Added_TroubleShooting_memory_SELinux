@@ -38,6 +38,8 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
 
 **SELinux Troubleshooting:**
 
+- sudo nano /etc/selinux/config this will allow you to change the SELINUX to permissive via SELINUX=disabled
+
 - To check if SELinux is blocking your application or service:
 
   ```sh
