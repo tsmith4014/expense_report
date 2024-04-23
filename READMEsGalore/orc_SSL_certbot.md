@@ -1,4 +1,4 @@
-Yes, you can adapt some of the steps from the process used for securing an AWS EC2 instance with an SSL certificate for use with your Oracle Cloud Infrastructure (OCI) setup, especially if you are running a web server like Nginx or Apache on your Oracle compute instance and wish to secure it with an SSL/TLS certificate from Let's Encrypt. Here's how you can apply similar steps in the OCI context:
+You can adapt some of the steps from the process used for securing an AWS EC2 instance with an SSL certificate for use with your Oracle Cloud Infrastructure (OCI) setup, especially if you are running a web server like Nginx or Apache on your Oracle compute instance and wish to secure it with an SSL/TLS certificate from Let's Encrypt. Here's how you can apply similar steps in the OCI context:
 
 ### Adapted Steps for OCI Compute Instance
 
@@ -67,7 +67,10 @@ Yes, you can adapt some of the steps from the process used for securing an AWS E
 
 By following these steps, you're effectively securing your web server hosted on an OCI compute instance with a free SSL certificate from Let's Encrypt, similar to how you might have done it on an AWS EC2 instance. This process ensures encrypted communication between your server and its clients, enhancing security and trust.
 
-Certainly! Here's a comprehensive guide in the form of a `README.md` file that details the steps to set up HTTPS for your application served via an Oracle Cloud Infrastructure (OCI) Load Balancer using a custom domain with SSL/TLS certificate. This guide assumes you have a basic understanding of OCI, DNS management, and SSL certificates.
+---
+---
+
+Here's a comprehensive guide in the form of a `README.md` file that details the steps to set up HTTPS for your application served via an Oracle Cloud Infrastructure (OCI) Load Balancer using a custom domain with SSL/TLS certificate. This guide assumes you have a basic understanding of OCI, DNS management, and SSL certificates.
 
 ---
 
