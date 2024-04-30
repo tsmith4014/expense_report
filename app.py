@@ -7,7 +7,7 @@ The app has two routes:
 """
 # app.py
 import logging
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, send_from_directory
 from populate_excel import populate_template
 import os
 
@@ -22,6 +22,12 @@ def handle_exception(error):
     # Log the error with traceback
     logging.error(f"An error occurred: {error}", exc_info=True)
     return render_template("error.html"), 500
+
+@app.route('/favicon.ico')
+def favicon():
+    # Serve the favicon - ensure there's a favicon.ico in your 'static' directory
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/privacy')
 def privacy():
@@ -70,6 +76,7 @@ def generate_excel():
 
 if __name__ == '__main__':
     app.run(debug=False)
+
 
 
 # from flask import Flask, render_template, request, send_file
