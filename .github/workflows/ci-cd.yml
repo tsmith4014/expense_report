@@ -59,8 +59,8 @@ jobs:
         context: .
         push: true
         tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-      # Debug: Echoing after build to check if it completes successfully
-      - run: echo "Build and push completed successfully."
+      
+    - run: echo "Build and push completed successfully."
 
   deploy:
     needs: build
