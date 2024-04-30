@@ -6,6 +6,136 @@ The app has two routes:
     - '/generate-excel' generates an Excel file based on the data submitted through the form and returns it as an attachment.
 """
 # app.py
+import logging
+from flask import Flask, render_template, request, send_file
+from populate_excel import populate_template
+import os
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a',
+                    format='%(name)s - %(levelname)s - %(message)s')
+
+app = Flask(__name__)
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    # Log the error with traceback
+    logging.error(f"An error occurred: {error}", exc_info=True)
+    return render_template("error.html"), 500
+
+@app.route('/privacy')
+def privacy():
+    logging.info("Privacy policy accessed.")
+    return render_template('privacy.html')
+
+@app.route('/instructions')
+def instructions():
+    logging.info("Instructions page accessed.")
+    return render_template('instructions.html')
+
+@app.route('/', methods=['GET'])
+def form():
+    logging.info("Form page requested.")
+    return render_template('index.html')
+
+@app.route('/generate-excel', methods=['POST'])
+def generate_excel():
+    logging.info("Excel generation initiated.")
+    try:
+        # Get data from form
+        data = {
+            'school': request.form['school'],
+            'period_ending': request.form['periodEnding'],
+            'trip_purpose': request.form['tripPurpose'],
+            'travel': request.form.get('travel'),
+            'travel_start_date': request.form.get('travelStartDate'),
+            'travel_end_date': request.form.get('travelEndDate'),
+            'employee_department': request.form['employeeDepartment']
+        }
+        logging.debug(f"Form data received: {data}")
+
+        # Define paths
+        template_path = 'expense_report.xlsx'
+        output_path = 'output.xlsx'
+
+        # Populate the template
+        populate_template(data, template_path, output_path)
+        logging.info("Excel file has been populated and ready to be sent.")
+
+        # Send the populated Excel file to the user
+        return send_file(output_path, as_attachment=True)
+    except Exception as e:
+        logging.error(f"An error occurred while generating Excel: {e}", exc_info=True)
+        raise
+
+if __name__ == '__main__':
+    app.run(debug=False)
+
+
+# from flask import Flask, render_template, request, send_file
+# from populate_excel import populate_template
+
+# app = Flask(__name__)
+
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#     # You can log the error here if you'd like to review it in your server logs
+#     print(f"An error occurred: {error}")  # Example of simple logging
+    
+#     # Return the custom error page
+#     return render_template("error.html"), 500
+
+# @app.route('/privacy')
+# def privacy():
+#     return render_template('privacy.html')
+
+# @app.route('/instructions')
+# def instructions():
+#     return render_template('instructions.html')
+
+
+# @app.route('/', methods=['GET'])
+# def form():
+#     # Render a form for inputting data
+#     return render_template('index.html')
+
+# @app.route('/generate-excel', methods=['POST'])
+# def generate_excel():
+#     """
+#     Generates an Excel file based on the data submitted through a form, using a pre-defined template.
+
+#     Returns:
+#         The generated Excel file as an attachment.
+#     """
+#     # Get data from form
+#     data = {
+#         'school': request.form['school'],
+#         'period_ending': request.form['periodEnding'],
+#         'trip_purpose': request.form['tripPurpose'],
+#         'travel': request.form.get('travel'),
+#         'travel_start_date': request.form.get('travelStartDate'),
+#         'travel_end_date': request.form.get('travelEndDate'),
+#         'employee_department': request.form['employeeDepartment'] 
+#     }
+
+#     # Define paths
+#     template_path = 'expense_report.xlsx'
+#     output_path = 'output.xlsx'
+
+#     # Populate the template
+#     populate_template(data, template_path, output_path)
+
+#     # Send the populated Excel file to the user
+#     return send_file(output_path, as_attachment=True)
+
+# if __name__ == '__main__':
+#     app.run(debug=False)
+
+
+
+
+
+#######bunch of stuff below this line but most updated backup is perdworks
 # from flask import Flask, render_template, request, send_file
 # from populate_excel import populate_template
 
@@ -93,64 +223,64 @@ The app has two routes:
 
 
 #from the mergecenter image below this works live:
-from flask import Flask, render_template, request, send_file
-from populate_excel import populate_template
+# from flask import Flask, render_template, request, send_file
+# from populate_excel import populate_template
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-@app.errorhandler(Exception)
-def handle_exception(error):
-    # You can log the error here if you'd like to review it in your server logs
-    print(f"An error occurred: {error}")  # Example of simple logging
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#     # You can log the error here if you'd like to review it in your server logs
+#     print(f"An error occurred: {error}")  # Example of simple logging
     
-    # Return the custom error page
-    return render_template("error.html"), 500
+#     # Return the custom error page
+#     return render_template("error.html"), 500
 
-@app.route('/privacy')
-def privacy():
-    return render_template('privacy.html')
+# @app.route('/privacy')
+# def privacy():
+#     return render_template('privacy.html')
 
-@app.route('/instructions')
-def instructions():
-    return render_template('instructions.html')
+# @app.route('/instructions')
+# def instructions():
+#     return render_template('instructions.html')
 
 
-@app.route('/', methods=['GET'])
-def form():
-    # Render a form for inputting data
-    return render_template('index.html')
+# @app.route('/', methods=['GET'])
+# def form():
+#     # Render a form for inputting data
+#     return render_template('index.html')
 
-@app.route('/generate-excel', methods=['POST'])
-def generate_excel():
-    """
-    Generates an Excel file based on the data submitted through a form, using a pre-defined template.
+# @app.route('/generate-excel', methods=['POST'])
+# def generate_excel():
+#     """
+#     Generates an Excel file based on the data submitted through a form, using a pre-defined template.
 
-    Returns:
-        The generated Excel file as an attachment.
-    """
-    # Get data from form
-    data = {
-        'school': request.form['school'],
-        'period_ending': request.form['periodEnding'],
-        'trip_purpose': request.form['tripPurpose'],
-        'travel': request.form.get('travel'),
-        'travel_start_date': request.form.get('travelStartDate'),
-        'travel_end_date': request.form.get('travelEndDate'),
-        'employee_department': request.form['employeeDepartment'] 
-    }
+#     Returns:
+#         The generated Excel file as an attachment.
+#     """
+#     # Get data from form
+#     data = {
+#         'school': request.form['school'],
+#         'period_ending': request.form['periodEnding'],
+#         'trip_purpose': request.form['tripPurpose'],
+#         'travel': request.form.get('travel'),
+#         'travel_start_date': request.form.get('travelStartDate'),
+#         'travel_end_date': request.form.get('travelEndDate'),
+#         'employee_department': request.form['employeeDepartment'] 
+#     }
 
-    # Define paths
-    template_path = 'expense_report.xlsx'
-    output_path = 'output.xlsx'
+#     # Define paths
+#     template_path = 'expense_report.xlsx'
+#     output_path = 'output.xlsx'
 
-    # Populate the template
-    populate_template(data, template_path, output_path)
+#     # Populate the template
+#     populate_template(data, template_path, output_path)
 
-    # Send the populated Excel file to the user
-    return send_file(output_path, as_attachment=True)
+#     # Send the populated Excel file to the user
+#     return send_file(output_path, as_attachment=True)
 
-if __name__ == '__main__':
-    app.run(debug=False)
+# if __name__ == '__main__':
+#     app.run(debug=False)
 
 #from the oracle compute instance below, this was working but not sure what image:
 # (venv) [opc@testinstance expense_report]$ cat app.py
