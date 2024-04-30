@@ -90,7 +90,69 @@ if __name__ == '__main__':
 # Nginx is a popular choice for this
 
 
-#from the oracle compute instance below, this was working:
+
+
+#from the mergecenter image below this works live:
+# from flask import Flask, render_template, request, send_file
+# from populate_excel import populate_template
+
+# app = Flask(__name__)
+
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#     # You can log the error here if you'd like to review it in your server logs
+#     print(f"An error occurred: {error}")  # Example of simple logging
+    
+#     # Return the custom error page
+#     return render_template("error.html"), 500
+
+# @app.route('/privacy')
+# def privacy():
+#     return render_template('privacy.html')
+
+# @app.route('/instructions')
+# def instructions():
+#     return render_template('instructions.html')
+
+
+# @app.route('/', methods=['GET'])
+# def form():
+#     # Render a form for inputting data
+#     return render_template('index.html')
+
+# @app.route('/generate-excel', methods=['POST'])
+# def generate_excel():
+#     """
+#     Generates an Excel file based on the data submitted through a form, using a pre-defined template.
+
+#     Returns:
+#         The generated Excel file as an attachment.
+#     """
+#     # Get data from form
+#     data = {
+#         'school': request.form['school'],
+#         'period_ending': request.form['periodEnding'],
+#         'trip_purpose': request.form['tripPurpose'],
+#         'travel': request.form.get('travel'),
+#         'travel_start_date': request.form.get('travelStartDate'),
+#         'travel_end_date': request.form.get('travelEndDate'),
+#         'employee_department': request.form['employeeDepartment'] 
+#     }
+
+#     # Define paths
+#     template_path = 'expense_report.xlsx'
+#     output_path = 'output.xlsx'
+
+#     # Populate the template
+#     populate_template(data, template_path, output_path)
+
+#     # Send the populated Excel file to the user
+#     return send_file(output_path, as_attachment=True)
+
+# if __name__ == '__main__':
+#     app.run(debug=False)
+
+#from the oracle compute instance below, this was working but not sure what image:
 # (venv) [opc@testinstance expense_report]$ cat app.py
 # # app.py, this script, is the entry point of the application. It defines a Flask app that generates an Excel file based on the data submitted through a form, using a pre-defined template.  It works with the populate_excel.py script, which contains the logic for populating the template with data. The populate_excel.py script is imported in the app.py script. The app.py script has two routes: '/' renders a form for inputting data, and '/generate-excel' generates an Excel file based on the data submitted through the form and returns it as an attachment.
 # """
