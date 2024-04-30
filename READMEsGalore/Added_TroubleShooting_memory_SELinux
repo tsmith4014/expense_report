@@ -1,13 +1,13 @@
-Here's a comprehensive overview of the troubleshooting steps and code snippets we've discussed to address your issues, including memory management, SELinux permissions, and enabling services on specific ports:
-
-### Monitoring Memory Usage and Managing Swap Space
+# Monitoring Memory Usage and Managing Swap Space
 
 **Monitoring Memory and Processes:**
 
 - To monitor memory usage and processes, use `top` or `htop`:
+
   ```sh
   top
   ```
+
   ```sh
   sudo apt-get install htop  # On Debian/Ubuntu
   sudo yum install htop  # On CentOS/RHEL
@@ -18,6 +18,7 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
 **Adding Swap Space:**
 
 - To add swap space, if needed:
+
   ```sh
   sudo fallocate -l 1G /swapfile  # Create a 1GB swap file
   sudo chmod 600 /swapfile  # Set correct permissions
@@ -26,12 +27,14 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab  # Make swap permanent
   ```
 
-### Managing Firewalls and SELinux for Application Access
+## Managing Firewalls and SELinux for Application Access
 
 **Adjusting Firewall Settings:**
 
-- To open a port (e.g., 8000) in the firewall:
+- Listing all ports and tp open a port (e.g., 8000) in the firewall:
+
   ```sh
+  sudo firewall-cmd --list-all # List all firewall rules
   sudo firewall-cmd --zone=public --add-port=8000/tcp --permanent
   sudo firewall-cmd --reload
   ```
@@ -55,6 +58,7 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
 - To permanently change SELinux to permissive mode, edit `/etc/selinux/config` and set `SELINUX=permissive`, then reboot.
 
 - To add a port (e.g., 8000) to SELinux allowed ports for HTTP services:
+
   ```sh
   sudo semanage port -a -t http_port_t -p tcp 8000
   ```
@@ -70,6 +74,7 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
   ```
 
 - Re-enable SELinux enforcing mode:
+
   ```sh
   sudo setenforce 1
   ```
@@ -86,6 +91,7 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
   ```
 
 - Consider stopping or disabling non-essential services:
+
   ```sh
   sudo systemctl stop [service_name]
   sudo systemctl disable [service_name]
@@ -100,5 +106,3 @@ Here's a comprehensive overview of the troubleshooting steps and code snippets w
   ```
 
 - For applications running under SELinux enforcement, ensure the executable and its dependencies are correctly labeled or that appropriate SELinux policies are in place to allow the necessary operations.
-
-These steps encompass a broad approach to troubleshooting and resolving the issues you've encountered, including memory management, SELinux permissions, firewall configurations, and application deployment considerations.

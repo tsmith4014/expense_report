@@ -98,24 +98,26 @@ Gunicorn serves as the WSGI server for the Flask application.
    sudo bash -c "cat > $SYSTEMD_SERVICE_FILE" << EOF
    ```
 
-[Unit]
-Description=Gunicorn instance to serve expense-report app
-Wants=network.target
-After=syslog.target network-online.target
+   ````bash
 
-[Service]
-Type=simple
-WorkingDirectory=/home/opc/expense_report
-Environment="PATH=/home/opc/venv/bin"
-ExecStart=/home/opc/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 expense_report.app:app
-Restart=always
-RestartSec=10
+      [Unit]
+      Description=Gunicorn instance to serve expense-report app
+      Wants=network.target
+      After=syslog.target network-online.target
 
-[Install]
-WantedBy=multi-user.target
-EOF
+      [Service]
+      Type=simple
+      WorkingDirectory=/home/opc/expense_report
+      Environment="PATH=/home/opc/venv/bin"
+      ExecStart=/home/opc/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 expense_report.app:app
+      Restart=always
+      RestartSec=10
 
-````
+      [Install]
+      WantedBy=multi-user.target
+      EOF```
+
+   ````
 
 2. **Enable and Start the Service**
 
@@ -123,9 +125,10 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable expense-report-webapp.service
 sudo systemctl start expense-report-webapp.service
-````
+```
 
 3. **Check Service Status**
+
    ```bash
    systemctl status expense-report-webapp.service
    ```

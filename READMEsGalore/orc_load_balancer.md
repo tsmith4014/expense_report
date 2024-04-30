@@ -68,8 +68,8 @@ Log in to the OCI Console with your credentials and navigate to the **Networking
 
 By following these instructions, you've successfully configured a public HTTP load balancer in OCI, enhancing the scalability and availability of your application served via Nginx.
 
-
 ---
+
 ---
 
 # OCI Load Balancer and Backend Set Configuration Guide
@@ -137,5 +137,3 @@ Here is a summary of key OCI CLI commands used during the troubleshooting proces
 Setting up a load balancer in OCI involves careful configuration of the load balancer itself, backend sets, health checks, and network security settings. Through systematic troubleshooting and the use of the OCI CLI for configuration and debugging, we were able to resolve issues related to health check failures and ensure the load balancer effectively routes traffic to the intended backend application.
 
 ---
-
-This README provides a structured overview of the process you've gone through, highlighting key steps, challenges, and resolutions in configuring your load balancer setup in OCI. Feel free to adjust the content to better fit your specific scenario or add additional details as necessary.

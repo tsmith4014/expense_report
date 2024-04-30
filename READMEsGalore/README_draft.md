@@ -251,5 +251,3 @@ If you encounter a permission denied error when trying to run Docker commands:
 
 This guide covers the essentials for getting started with Docker on Oracle Linux 8, including installation, basic management, and interacting with Docker Hub.
 ````
-
-This document should serve as a comprehensive guide for managing Docker on your Oracle Linux 8 instance. Save this content as a `.md` file for easy reference and sharing with others who might benefit from these instructions.

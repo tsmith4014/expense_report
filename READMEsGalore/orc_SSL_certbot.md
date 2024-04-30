@@ -1,13 +1,13 @@
+# Adapted Steps for OCI Compute Instance
+
 You can adapt some of the steps from the process used for securing an AWS EC2 instance with an SSL certificate for use with your Oracle Cloud Infrastructure (OCI) setup, especially if you are running a web server like Nginx or Apache on your Oracle compute instance and wish to secure it with an SSL/TLS certificate from Let's Encrypt. Here's how you can apply similar steps in the OCI context:
 
-### Adapted Steps for OCI Compute Instance
-
-#### Prerequisites
+## Prerequisites
 
 - An Oracle Cloud Infrastructure compute instance with Nginx or Apache installed.
 - A domain name pointing to your OCI compute instance's public IP address.
 
-#### Steps
+### Steps
 
 1. **Point Your Domain to the OCI Compute Instance:**
    Ensure your domain's DNS records (A or CNAME) point to the public IP address of your OCI compute instance. This step is crucial for domain validation by Let's Encrypt.
@@ -68,17 +68,18 @@ You can adapt some of the steps from the process used for securing an AWS EC2 in
 By following these steps, you're effectively securing your web server hosted on an OCI compute instance with a free SSL certificate from Let's Encrypt, similar to how you might have done it on an AWS EC2 instance. This process ensures encrypted communication between your server and its clients, enhancing security and trust.
 
 ---
+
 ---
 
 Here's a comprehensive guide in the form of a `README.md` file that details the steps to set up HTTPS for your application served via an Oracle Cloud Infrastructure (OCI) Load Balancer using a custom domain with SSL/TLS certificate. This guide assumes you have a basic understanding of OCI, DNS management, and SSL certificates.
 
 ---
 
-# HTTPS Setup Guide for OCI Load Balancer with SSL/TLS Certificate
+## HTTPS Setup Guide for OCI Load Balancer with SSL/TLS Certificate
 
 This guide provides a step-by-step approach to setting up HTTPS for an application deployed on Oracle Cloud Infrastructure (OCI), using a Load Balancer and securing it with an SSL/TLS certificate.
 
-## Overview
+### Overview
 
 The process involves several major steps:
 
@@ -88,7 +89,7 @@ The process involves several major steps:
 4. Load Balancer Configuration
 5. Listener Setup for HTTPS
 
-## Prerequisites
+### Prereq
 
 - An OCI account and basic understanding of OCI services.
 - A registered domain.
@@ -155,5 +156,3 @@ Configure your Load Balancer's listener to serve HTTPS traffic.
 This guide covered setting up HTTPS for an application on OCI using a Load Balancer and SSL/TLS certificate. Remember, SSL certificate renewal needs to be handled periodically, depending on the certificate authority's policies.
 
 ---
-
-Please adjust the content to fit your specific configuration or requirements where necessary.
