@@ -1,6 +1,6 @@
 docker buildx create --use
 docker build -t tsmith4014/expense_report:apr30 .
-docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:apr30 . --push
+docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:perdworks . --push
 
 docker run -d --restart=always -p 8001:80 tsmith4014/expense_report:broke_1
 
