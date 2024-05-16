@@ -23,30 +23,31 @@ Log in to the OCI Console with your credentials and navigate to the Networking s
 - **Public**: Select if your load balancer will receive traffic from the internet.
 - For **Assign a public IP address**:
   - **Ephemeral IP Address**: Select if you want OCI to automatically assign a temporary public IP.
-  - **Reserved IP Address**: Choose if you wish to use or create a permanent public IP address.
+  - **Reserved IP Address**: Choose if you wish to use or create a permanent public IP address. CHOOSE THIS to make life less difficult
 
 ### Step 4: Configure Bandwidth
 
+Free accounts only have 10Mbps options as of when i created this so below is kinda moot.
 Specify the minimum and maximum bandwidth for your load balancer (e.g., 10 Mbps to 8000 Mbps). The flexible shape allows you to scale the load balancer's bandwidth based on demand.
 
 ### Step 5: Enable IPv6 (Optional)
 
-Check **Enable IPv6 address assignment** if you require IPv6 support for your load balancer, enabling dual-stack IPv4/IPv6.
+Check **Enable IPv6 address assignment** if you require IPv6 support for your load balancer, enabling dual-stack IPv4/IPv6.  No idea if this is even still an option just choose IPv$
 
 ### Step 6: Choose Networking
 
 Select a Virtual Cloud Network and then choose a Subnet:
 
-- For a public load balancer, select a single regional subnet or two availability domain-specific subnets in different availability domains for high availability.
+- For a public load balancer, select a single regional subnet or two availability domain-specific subnets in different availability domains for high availability.  For https proxy just choose one subnet as we are not using this load balancer in the traditional sense but its being setup for that if this server does need load balancing.  Our goal is using it for our https endpoint config and proxy.
 
 ### Step 7: Configure Advanced Options (Optional)
 
-Use Network Security Groups (NSGs) to control traffic to and from your load balancer. NSGs are an optional but recommended security feature.
+Use Network Security Groups (NSGs) to control traffic to and from your load balancer. NSGs are an optional but recommended security feature.  Do this after everything works not in this intial config.
 
 ### Step 8: Import and Configure SSL/TLS Certificate
 
 1. **Generate or Obtain an SSL/TLS Certificate**:
-   - If you don't already have an SSL/TLS certificate, you can generate one using tools like OpenSSL or obtain one from a Certificate Authority (CA) such as Let's Encrypt, DigiCert, etc.
+   - If you don't already have an SSL/TLS certificate, you can generate one using tools like OpenSSL or obtain one from a Certificate Authority (CA) such as Let's Encrypt, DigiCert, etc.  Or use the other readme I created it hits on just about all the steps in order.  
 2. **Prepare Certificate Files**:
 
    - Ensure you have the following files ready:
