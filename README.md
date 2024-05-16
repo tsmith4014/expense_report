@@ -20,8 +20,7 @@ This README document outlines the steps to deploy a Flask-based web application,
 
 ### Prerequisites
 
-- Oracle Cloud Instance access with the provided key (`selfs.key`).
-- SSH access to the Oracle Instance.
+- SSH access to the Oracle Instance.  I will add terraform code to create the instance in the future but for now spin up either an Ubuntu or Oracle Linux 8 instance.  Below we are assuming Oracle Linux 8 and using yum package manager but if you are using Ubuntu you will need to use apt-get package manager.
 
 ### Initial Steps
 
@@ -38,6 +37,7 @@ This README document outlines the steps to deploy a Flask-based web application,
    ```
 
 3. **Clone the Expense Report Webapp Repository**
+
    ```bash
    cd /home/opc/
    git clone https://github.com/tsmith4014/expense_report.git
@@ -76,6 +76,7 @@ This README document outlines the steps to deploy a Flask-based web application,
    ```
 
 5. **Create Gunicorn Configuration File**
+
    ```bash
    echo "bind = '0.0.0.0:8000'
    workers = 4" > gunicorn_config.py
