@@ -1,6 +1,4 @@
-Certainly! Below are the expanded and detailed steps for importing the SSL certificate and getting it in place in Oracle Cloud Infrastructure (OCI), integrated into the README. This includes the full setup for both scenarios (with and without Nginx as a proxy).
-
----
+# How to Set Up a Public HTTPS Load Balancer in Oracle Cloud Infrastructure (OCI) for a Flask Application
 
 ## Prerequisites
 
@@ -120,10 +118,9 @@ Here is a summary of key OCI CLI commands used during the configuration process:
   ```
 
 - **Check backend health**:
+
   ```bash
   oci lb backend-health get --backend-set-name <name> --backend-name <ip:port> --load-balancer-id <load-balancer-ocid>
   ```
-
-This revised README includes detailed steps for importing the SSL certificate into OCI, as well as step-by-step instructions for both scenarios (with and without Nginx as a proxy), ensuring the correct configuration of the backend set using the private IP address and focusing on the essential steps for setting up and testing your load balancer.
 
 ---
