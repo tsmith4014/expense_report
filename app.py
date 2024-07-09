@@ -26,8 +26,7 @@ def handle_exception(error):
 @app.route('/favicon.ico')
 def favicon():
     # Serve the favicon - ensure there's a favicon.ico in your 'static' directory
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory('/home/opc/expense_report/static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/privacy')
 def privacy():

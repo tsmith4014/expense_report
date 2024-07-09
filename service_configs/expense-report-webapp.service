@@ -1,5 +1,6 @@
 [Unit]
 Description=Gunicorn instance to serve expense_report
+Wants=network.target
 After=network.target
 
 [Service]
@@ -7,7 +8,11 @@ User=opc
 Group=nginx
 WorkingDirectory=/home/opc/expense_report
 Environment="PATH=/home/opc/venv/bin"
-ExecStart=/home/opc/venv/bin/gunicorn --workers 3 --bind unix:expense_report.sock -m 007 app:app
+ExecStart=/home/opc/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8001 app:app
 
 [Install]
 WantedBy=multi-user.target
+
+
+
+/etc/systemd/system/expense-report-webapp.service

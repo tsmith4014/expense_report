@@ -1,0 +1,60 @@
+# name: Renew SSL Certificate and Update Load Balancer
+
+# on:
+#   schedule:
+#     - cron: '0 0 */89 * *'  # Runs every 89 days
+
+# env:
+#   OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+#   OCI_USER: ${{ secrets.OCI_USER }}
+#   OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+#   OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+#   OCI_REGION: ${{ secrets.OCI_REGION }}
+#   CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+#   DOMAIN: expenseapp.devopschad.com
+#   LB_OCID: ${{ secrets.OCI_LB_OCID }}
+#   CERT_NAME: expenseapp-cert
+
+# jobs:
+#   renew-cert:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+    
+#     - name: Set up OCI CLI
+#       run: |
+#         echo "${{ env.OCI_PRIVATE_KEY }}" > oci_key.pem
+#         chmod 600 oci_key.pem
+#         oci setup config --config-file ./oci_config --profile DEFAULT --tenancy ${{ env.OCI_TENANCY }} --user ${{ env.OCI_USER }} --region ${{ env.OCI_REGION }} --fingerprint ${{ env.OCI_FINGERPRINT }} --key-file ./oci_key.pem
+#       env:
+#         OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+#         OCI_USER: ${{ secrets.OCI_USER }}
+#         OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+#         OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+#         OCI_REGION: ${{ secrets.OCI_REGION }}
+
+#     - name: Install Certbot
+#       run: |
+#         sudo apt-get update
+#         sudo apt-get install -y certbot
+
+#     - name: Renew Certificate using Certbot
+#       run: |
+#         sudo certbot certonly --manual --preferred-challenges=dns -d ${{ env.DOMAIN }} --email ${{ env.CERTBOT_EMAIL }} --agree-tos --manual-public-ip-logging-ok --config-dir ./letsencrypt --logs-dir ./letsencrypt/logs --work-dir ./letsencrypt
+#       env:
+#         DOMAIN: expenseapp.devopschad.com
+#         CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+
+#     - name: Update Load Balancer Certificate in OCI
+#       run: |
+#         CERT_OCID=$(oci lb certificate list --load-balancer-id ${{ env.LB_OCID }} --query "data[?name=='${{ env.CERT_NAME }}'].id | [0]" --raw-output)
+#         oci lb certificate update \
+#           --load-balancer-id ${{ env.LB_OCID }} \
+#           --certificate-id $CERT_OCID \
+#           --private-key-file ./letsencrypt/live/${{ env.DOMAIN }}/privkey.pem \
+#           --public-certificate-file ./letsencrypt/live/${{ env.DOMAIN }}/cert.pem \
+#           --ca-certificate-file ./letsencrypt/live/${{ env.DOMAIN }}/fullchain.pem
+#       env:
+#         LB_OCID: ${{ secrets.OCI_LB_OCID }}
+#         CERT_NAME: expenseapp-cert

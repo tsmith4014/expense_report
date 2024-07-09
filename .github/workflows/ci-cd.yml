@@ -24,63 +24,63 @@
 # - ORACLE_COMPUTE_SSH_KEY: The private SSH key for authentication to the Oracle Compute Instance stored as a secret in the GitHub repository.
 
 
-name: CI/CD Pipeline
+# name: CI/CD Pipeline
 
-on:
-  push:
-    branches: [ main ]
+# on:
+#   push:
+#     branches: [ main ]
 
-env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
-  IMAGE_NAME: tsmith4014/expense_report
-  IMAGE_TAG: letterhead  # Updated to use the existing tag on Docker Hub
+# env:
+#   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+#   DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+#   IMAGE_NAME: tsmith4014/expense_report
+#   IMAGE_TAG: letterhead  # Updated to use the existing tag on Docker Hub
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+#     - name: Set up Docker Buildx
+#       uses: docker/setup-buildx-action@v1
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ env.DOCKER_USERNAME }}
-        password: ${{ env.DOCKER_PASSWORD }}
+#     - name: Login to DockerHub
+#       uses: docker/login-action@v1
+#       with:
+#         username: ${{ env.DOCKER_USERNAME }}
+#         password: ${{ env.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+#     - name: Build and push Docker image
+#       uses: docker/build-push-action@v2
+#       with:
+#         context: .
+#         push: true
+#         tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
       
-    - run: echo "Build and push completed successfully."
+#     - run: echo "Build and push completed successfully."
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Deploy to Oracle Compute Instance via SSH
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.ORACLE_COMPUTE_HOST }}
-        username: ${{ secrets.ORACLE_COMPUTE_USERNAME }}
-        key: ${{ secrets.ORACLE_COMPUTE_SSH_KEY }}
-        script: |
-          echo "Starting deployment process..."
-          docker stop $(docker ps -q) || true
-          echo "Stopped all running containers."
-          docker system prune -a -f
-          echo "Pruned Docker system."
-          docker pull ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          echo "Pulled latest Docker image."
-          docker run -d -p 8001:80 ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          echo "Docker container started."
+#     steps:
+#     - name: Deploy to Oracle Compute Instance via SSH
+#       uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.ORACLE_COMPUTE_HOST }}
+#         username: ${{ secrets.ORACLE_COMPUTE_USERNAME }}
+#         key: ${{ secrets.ORACLE_COMPUTE_SSH_KEY }}
+#         script: |
+#           echo "Starting deployment process..."
+#           docker stop $(docker ps -q) || true
+#           echo "Stopped all running containers."
+#           docker system prune -a -f
+#           echo "Pruned Docker system."
+#           docker pull ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+#           echo "Pulled latest Docker image."
+#           docker run -d -p 8001:80 ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+#           echo "Docker container started."
 
