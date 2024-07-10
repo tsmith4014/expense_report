@@ -1,0 +1,11 @@
+Terraform/
+__pycache__/
+venv/
+READMEsGalore/
+service_configs/
+app.log
+opc-info/
+.vscode/
+.trunk/
+.github/
+README.md
