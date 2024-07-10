@@ -74,7 +74,82 @@ def generate_excel():
         raise
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(host="0.0.0.0", port=8000, debug=True)
+
+
+
+
+
+#this was what we had but debugging per diem issues
+# import logging
+# from flask import Flask, render_template, request, send_file, send_from_directory
+# from populate_excel import populate_template
+# import os
+
+# # Configure logging
+# logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a',
+#                     format='%(name)s - %(levelname)s - %(message)s')
+
+# app = Flask(__name__)
+
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#     # Log the error with traceback
+#     logging.error(f"An error occurred: {error}", exc_info=True)
+#     return render_template("error.html"), 500
+
+# @app.route('/favicon.ico')
+# def favicon():
+#     # Serve the favicon - ensure there's a favicon.ico in your 'static' directory
+#     return send_from_directory('/home/opc/expense_report/static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+# @app.route('/privacy')
+# def privacy():
+#     logging.info("Privacy policy accessed.")
+#     return render_template('privacy.html')
+
+# @app.route('/instructions')
+# def instructions():
+#     logging.info("Instructions page accessed.")
+#     return render_template('instructions.html')
+
+# @app.route('/', methods=['GET'])
+# def form():
+#     logging.info("Form page requested.")
+#     return render_template('index.html')
+
+# @app.route('/generate-excel', methods=['POST'])
+# def generate_excel():
+#     logging.info("Excel generation initiated.")
+#     try:
+#         # Get data from form
+#         data = {
+#             'school': request.form['school'],
+#             'period_ending': request.form['periodEnding'],
+#             'trip_purpose': request.form['tripPurpose'],
+#             'travel': request.form.get('travel'),
+#             'travel_start_date': request.form.get('travelStartDate'),
+#             'travel_end_date': request.form.get('travelEndDate'),
+#             'employee_department': request.form['employeeDepartment']
+#         }
+#         logging.debug(f"Form data received: {data}")
+
+#         # Define paths
+#         template_path = 'expense_report.xlsx'
+#         output_path = 'output.xlsx'
+
+#         # Populate the template
+#         populate_template(data, template_path, output_path)
+#         logging.info("Excel file has been populated and ready to be sent.")
+
+#         # Send the populated Excel file to the user
+#         return send_file(output_path, as_attachment=True)
+#     except Exception as e:
+#         logging.error(f"An error occurred while generating Excel: {e}", exc_info=True)
+#         raise
+
+# if __name__ == '__main__':
+#     app.run(debug=False)
 
 
 

@@ -1,4 +1,4 @@
-#populate_excel.py
+#populate_excel.py this works up to per diem fields.  next is adding mileage calculations and maybe some css styling
 import openpyxl
 from openpyxl.styles import Alignment
 from openpyxl.drawing.image import Image
