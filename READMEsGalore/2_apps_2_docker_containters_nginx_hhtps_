@@ -1,0 +1,210 @@
+# Guide to Launching Docker Containers and Configuring Nginx as a Proxy on an Oracle Instance
+
+This guide provides step-by-step instructions to set up two Docker containers and configure an Nginx server to act as an HTTPS endpoint and proxy on an Oracle instance.
+
+## Prerequisites
+
+- An Oracle instance with Docker installed
+- Domain names for your applications
+- SSL certificates (e.g., via Let's Encrypt)
+
+### Step 1: Install Docker
+
+If Docker is not already installed, follow these steps:
+
+```sh
+sudo yum update -y
+sudo yum install -y docker
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+```
+
+Log out and log back in for the group change to take effect.
+
+### Step 2: Install Docker Compose (This may or may not install, kinda optional and buggy at this point using manual network setup and run docker commands)
+
+```sh
+sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)"
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+```
+
+### Step 3: Set Up Docker Buildx
+
+Buildx is a Docker CLI plugin that extends the Docker command with the full support of the features provided by Moby BuildKit builder toolkit. This is being used because I am building these images on my local Mac and then pushing to Dockerhub to pull on the Oracle instance. \*Macs use the x86_64 architecture and Oracle instances use the ARM64 architecture and the Buildx plugin allows for multi-architecture builds. Remember to startup Docker Desktop locally.
+
+```sh
+docker buildx create --use
+```
+
+### Step 4: Build and Push Docker Images
+
+Build and push your Docker images to Docker Hub or your preferred container registry.
+
+```sh
+docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:apr30 . --push
+docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:finetune2 . --push
+```
+
+### Step 5: Pull Docker Images
+
+On your Oracle instance, pull the Docker images:
+
+```sh
+docker pull tsmith4014/expense_report:finetune2
+```
+
+### Step 6: Create a Docker Network
+
+Create a Docker network to keep your services isolated from the public internet.
+
+```sh
+docker network create my_network
+```
+
+### Step 7: Run Docker Containers
+
+Run your backend services within the created network:
+
+```sh
+docker run -d --name backend1 --network my_network tsmith4014/career-page:favicon
+docker run -d --name backend2 --network my_network tsmith4014/expense_report:finetune2
+```
+
+### Step 8: Retrieve IP Addresses of Docker Containers
+
+Get the IP addresses of the running containers:
+
+```sh
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend1
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend2
+```
+
+Use these IP addresses to configure your Nginx proxy.
+
+### Step 9: Configure Nginx
+
+Create an Nginx configuration file (`/etc/nginx/nginx.conf`) with the following content:
+
+```nginx
+server {
+    listen 80;
+    server_name expenseapp.devopschad.com;
+
+    # Redirect all HTTP requests to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name expenseapp.devopschad.com;
+
+    ssl_certificate /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    access_log /var/log/nginx/expenseapp.access.log;
+    error_log /var/log/nginx/expenseapp.error.log;
+
+    location /api/ {
+        proxy_pass http://172.18.0.3:8001;  # backend2
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://172.18.0.2:8000;  # backend1
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 80;
+    server_name devopschad.com www.devopschad.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Redirect all HTTP requests to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name devopschad.com www.devopschad.com;
+
+    ssl_certificate /etc/letsencrypt/live/devopschad.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/devopschad.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    access_log /var/log/nginx/devopschad.access.log;
+    error_log /var/log/nginx/devopschad.error.log;
+
+    location /api/ {
+        proxy_pass http://172.18.0.3:8001;  # backend2
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://172.18.0.2:8000;  # backend1
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+```
+
+### Step 10: Start Nginx
+
+After updating the Nginx configuration, restart the Nginx service to apply the changes:
+
+```sh
+sudo systemctl restart nginx
+```
+
+Alternatively, to reload the configuration without interrupting active connections:
+
+```sh
+sudo nginx -s reload
+```
+
+### Additional Commands
+
+- To check the status of Nginx:
+
+  ```sh
+
+  sudo systemctl status nginx
+  ```
+
+- To check Docker containers:
+
+  ```sh
+
+  docker ps
+  ```
+
+### Conclusion
+
+By following this guide, you should have a secure setup where Nginx acts as a reverse proxy for your Docker containers, with only the necessary ports exposed to the public internet. This ensures that your backend services remain protected while providing a secure endpoint for your applications.

@@ -1,0 +1,65 @@
+# docker run -d --name backend1 --network my_network tsmith4014/career-page:favicon
+# docker run -d --name backend2 --network my_network tsmith4014/expense_report:finetune2
+
+
+# docker run -d --name nginx \
+#     --network my_network \
+#     -v /path/to/oracle-sites-enabled.conf:/etc/nginx/conf.d/default.conf \
+#     -v /etc/letsencrypt:/etc/letsencrypt:ro \
+#     -v /var/www/certbot:/var/www/certbot:ro \
+#     -p 80:80 -p 443:443 \
+#     nginx
+
+# docker run -d --name nginx \
+#     --network my_network \
+#     -v /etc/nginx/sites-enabled/expenseapp:/etc/nginx/conf.d/default.conf \
+#     -v /etc/letsencrypt:/etc/letsencrypt:ro \
+#     -v /var/www/certbot:/var/www/certbot:ro \
+#     -p 80:80 -p 443:443 \
+#     nginx
+
+
+# docker run -d --name nginx -p 80:80 -p 443:443 --network my_network -v ./nginx.conf:/etc/nginx/nginx.conf -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot nginx:latest
+
+
+# [opc@testinstance sites-enabled]$ docker ps
+# CONTAINER ID   IMAGE                                 COMMAND                  CREATED         STATUS         PORTS              NAMES
+# 016f06a33042   tsmith4014/expense_report:finetune2   "/bin/sh -c 'service…"   6 minutes ago   Up 6 minutes   80/tcp             backend2
+# de397944872a   tsmith4014/career-page:favicon        "/docker-entrypoint.…"   7 minutes ago   Up 7 minutes   80/tcp, 8000/tcp   backend1
+# [opc@testinstance sites-enabled]$ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend1
+# 172.18.0.2
+# [opc@testinstance sites-enabled]$ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend2
+# 172.18.0.3
+# [opc@testinstance sites-enabled]$ 
+
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    networks:
+      - my_network
+
+  backend1:
+    image: tsmith4014/career-page:favicon
+    expose:
+      - "8000"
+    networks:
+      - my_network
+
+  backend2:
+    image: tsmith4014/expense_report:finetune2
+    expose:
+      - "8001"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
