@@ -1,10 +1,5 @@
 # app.py, this script, is the entry point of the application. It defines a Flask app that generates an Excel file based on the data submitted through a form, using a pre-defined template.  It works with the populate_excel.py script, which contains the logic for populating the template with data. The populate_excel.py script is imported in the app.py script. The app.py script has two routes: '/' renders a form for inputting data, and '/generate-excel' generates an Excel file based on the data submitted through the form and returns it as an attachment.
-"""
-This script defines a Flask app that generates an Excel file based on the data submitted through a form, using a pre-defined template.
-The app has two routes: 
-    - '/' renders a form for inputting data
-    - '/generate-excel' generates an Excel file based on the data submitted through the form and returns it as an attachment.
-"""
+removed
 # app.py
 import logging
 from flask import Flask, render_template, request, send_file, send_from_directory
