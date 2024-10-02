@@ -45,6 +45,7 @@ Build and push your Docker images to Docker Hub or your preferred container regi
 ```sh
 docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:apr30 . --push
 docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:finetune2 . --push
+docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:onepageprintAug29 . --push
 ```
 
 ### Step 5: Pull Docker Images
@@ -53,6 +54,7 @@ On your Oracle instance, pull the Docker images:
 
 ```sh
 docker pull tsmith4014/expense_report:finetune2
+docker pull tsmith4014/expense_report:onepageprintAug29
 ```
 
 ### Step 6: Create a Docker Network
@@ -70,6 +72,8 @@ Run your backend services within the created network:
 ```sh
 docker run -d --name backend1 --network my_network tsmith4014/career-page:favicon
 docker run -d --name backend2 --network my_network tsmith4014/expense_report:finetune2
+docker run -d --name backend2 --network my_network tsmith4014/expense_report:nonginx
+docker run -d --name backend2 --network my_network tsmith4014/expense_report:onepageprintAug29
 ```
 
 ### Step 8: Retrieve IP Addresses of Docker Containers
