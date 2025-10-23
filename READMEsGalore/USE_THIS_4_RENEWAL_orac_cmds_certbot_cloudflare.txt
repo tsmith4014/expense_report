@@ -1,0 +1,1803 @@
+Memory issues killing instance - docker run --memory=400m --memory-swap=512m ...
+
+my_keys> pwd
+/Users/chadthompsonsmith/OneDrive/OldMac/Oracle_Cloud/my_keys
+
+ssh -i <private_key_file> <username>@<public-ip-address>
+cd my
+this is key for oracle cloud for my instance
+selfs.key = key for this oracle instance
+
+oracle signin "vegadevs"
+
+DO NOT FORGET THAT WHEN YOU DO THIS PROCESS U MAY LOSE YOUR DOCKER NETWORK IP AND NEED TO CHANGE /etc/nginx/sites-available/expenseapp
+
+USE THIS TO GET THE NEW IP - [opc@testinstance ~]$ docker inspect -f '{{ .Name }} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend1 backend2
+/backend1 - 172.18.0.2
+/backend2 - 172.17.0.2
+[opc@testinstance ~]$ 
+
+
+##################recert ssl instructions##################
+##################First go to cloudflare and turn the proxy off################## 
+#######################set Selinux to permissive >>>> "sestatus" to see status and "sudo setenforce 0" to set to permissive#################
+####then run sudo certbot certonly --webroot -w /var/www/certbot -d expenseapp.devopschad.com or whatever the domain is#################
+####The reenabled proxy in cloudflare#################
+####Then run sudo systemctl reload nginx#################
+
+sudo certbot certonly --webroot -w /var/www/certbot -d devopschad.com -d www.devopschad.com -d expenseapp.devopschad.com
+-extra cert cmds -
+sudo certbot certificates
+sudo certbot delete --cert-name expenseapp.devopschad.com
+
+Postcert renew
+sudo nginx -s reload  #more gentle way to restart nginx doesnt kill connections
+sudo nginx -t && sudo systemctl reload nginx
+
+sudo systemctl restart nginx
+sudo tail -f /var/log/nginx/expenseapp.error.log
+---------------------------------------------------------------------------------------------------------------------
+docker buildx create --use
+docker build -t tsmith4014/expense_report:apr30 .
+docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:apr30 . --push
+docker buildx build --platform linux/amd64,linux/arm64 -t tsmith4014/expense_report:finetune2 . --push
+docker pull tsmith4014/expense_report:finetune2
+docker run -d --restart=always -p 8001:8000 tsmith4014/expense_report:finetune #this runs in detached mode and restarts the container if it crashes
+#restart=always will restart the container if it crashes and is a nice feature
+docker run -p 8001:8000 tsmith4014/expense_report:finetune2 #this runs in attached mode
+docker run -d -p 8001:8000 tsmith4014/expense_report:finetune2 #this runs in detached mode
+
+
+sudo nginx -s reload  #more gentle way to restart nginx doesnt kill connections
+sudo systemctl restart nginx
+sudo systemctl restart expense-report-webapp.service
+
+#This uses a docker network as a way to keep all the ports private and not expose the app to the public internet by using nginx proxy outside of the containers but inside the the oracle cloud instance.  Docker Compose will do this as well but launching it inside the instance is hard, need to figure out how to install docker compose on the instance.  But manually doing it is a good way to learn how it works and the commands are as follows:
+ 1038  docker run -d --name backend1 --network my_network tsmith4014/career-page:favicon
+ 1040  docker run -d --name backend2 --network my_network tsmith4014/expense_report:finetune2
+
+ #this will give the ip of a docker container and is used to update the nginx.conf file outside of the docker network
+ 1049  docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend1
+ 1050  docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend2
+
+ #example:
+ [opc@testinstance expense_report]$ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' backend2
+   172.18.0.3
+
+
+
+[opc@testinstance expense_report]$ docker run -p 8001:80 tsmith4014/expense_report:finetune
+Starting nginx: nginx.
+[2024-07-10 17:02:17 +0000] [22] [INFO] Starting gunicorn 20.1.0
+[2024-07-10 17:02:17 +0000] [22] [INFO] Listening at: http://0.0.0.0:8000 (22)
+[2024-07-10 17:02:17 +0000] [22] [INFO] Using worker: sync
+[2024-07-10 17:02:17 +0000] [24] [INFO] Booting worker with pid: 24
+[2024-07-10 17:02:17 +0000] [25] [INFO] Booting worker with pid: 25
+[2024-07-10 17:02:17 +0000] [26] [INFO] Booting worker with pid: 26
+^C^C^C^C^C^C^C^C^C^C
+
+scp -r -i /path/to/selfs.key /Users/chadthompsonsmith/Oracle_Cloud/expense_report/templates opc@132.145.210.86:/home/opc/expense_report/
+
+[opc@testinstance system]$ docker ps
+CONTAINER ID   IMAGE                               COMMAND                  CREATED             STATUS             PORTS                                   NAMES
+5ecd05e76be9   tsmith4014/expense_report:broke_1   "/bin/sh -c 'service…"   About an hour ago   Up About an hour   0.0.0.0:8001->80/tcp, :::8001->80/tcp   youthful_bohr
+[opc@testinstance system]$ 
+
+[opc@testinstance ~]$ docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED       STATUS       PORTS                                       NAMES
+ea7e5aa9c904   0cb25045ad75   "gunicorn --workers=…"   2 weeks ago   Up 2 weeks   0.0.0.0:8001->8000/tcp, :::8001->8000/tcp   pedantic_sammet
+
+
+#current working image/container -> does not fix mileage issue but does fix the merge center issue. *****THIS NEEDS TO BE UPDATED IN THE VIDEO DIRECTIONS*****
+[opc@testinstance ~]$ docker ps
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED          STATUS          PORTS                                   NAMES
+084ba84d8c84   tsmith4014/expense_report:mergecenter   "/bin/sh -c 'service…"   10 minutes ago   Up 10 minutes   0.0.0.0:8001->80/tcp, :::8001->80/tcp   interesting_goldstine
+[opc@testinstance ~]$ docker exec -it 084ba84d8c84 /bin/sh
+
+
+
+    cat /usr/src/app/flask.log
+    docker logs e37bfca44f87 
+    cat /var/log/nginx/error.log
+    cat /var/log/nginx/access.log
+    
+
+Activate the web console with: systemctl enable --now cockpit.socket
+
+Last login: Sun Mar 10 21:36:14 2024 from 71.64.119.88
+[opc@testinstance ~]$ history
+    1  ls
+    2  systemctl list-units --type=service
+    3  journalctl -u cloud-final.service
+    4  journalctl -u cloud-final.service | less
+    5  journalctl -u kdump.service
+    6  journalctl -u expense-report-webapp.service
+    7  /etc/systemd/system/expense-report-webapp.service
+    8  source venv/bin/activate
+    9  /etc/systemd/system/expense-report-webapp.service
+   10  cat /etc/systemd/system/expense-report-webapp.service
+   11  sudo systemctl start expense-report-webapp.service
+   12  sudo systemctl status expense-report-webapp.service
+   13  journalctl -u expense-report-webapp.service
+   14  sudo systemctl status expense-report-webapp.service -t 40
+   15  sudo systemctl status expense-report-webapp.service -tail 40
+   16  sudo systemctl status expense-report-webapp.service tail 40
+   17  clear
+   18  ls /home/opc/expense-report-webapp/venv/bin/
+   19  ls
+   20  deactivate
+   21  cd /home/opc/expense-report-webapp/
+   22  ls
+   23  sudo nano /etc/systemd/system/expense-report-webapp.service
+   24  sudo systemctl daemon-reload
+   25  sudo systemctl start expense-report-webapp.service
+   26  sudo systemctl status expense-report-webapp.service
+   27  ls
+   28  source venv/bin/activate
+   29  sudo systemctl start expense-report-webapp.service
+   30  sudo systemctl status expense-report-webapp.service
+   31  ls /home/opc/expense_report/venv/bin/gunicorn
+   32  ls
+   33  cat gunicorn_config.py 
+   34  /home/opc/expense_report/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 app:app
+   35  source /home/opc/expense_report/venv/bin/activate
+   36  ls
+   37  pip install gunicorn
+   38  pip install requirements.txt 
+   39  ls
+   40  deactivate
+   41  rm -rf /home/opc/expense_report/venv
+   42  python3 -m venv /home/opc/expense_report/venv
+   43  sudo chmod 755 /home/opc/expense_report
+   44  python3 -m venv /home/opc/expense_report/venv
+   45  python3 -m venv ~/expense_report/venv
+   46  ls
+   47  sudo chown -R opc:opc /home/opc/expense_report
+   48  python3 -m venv /home/opc/expense_report/venv
+   49  source /home/opc/expense_report/venv/bin/activate
+   50  pip install -r /home/opc/expense_report/requirements.txt
+   51  pip install --upgrade pip' command
+   52   pip install --upgrade pip
+   53  pip install -r /home/opc/expense_report/requirements.txt
+   54  sudo systemctl start expense-report-webapp.service
+   55  sudo systemctl status expense-report-webapp.service
+   56  systemctl start expense-report-webapp.service
+   57  ls /home/opc/expense_report/venv/bin/gunicorn
+   58  ls
+   59  source /home/opc/expense_report/venv/bin/activate
+   60  pip install gunicorn
+   61  ls /home/opc/expense_report/venv/bin/gunicorn
+   62  ls
+   63  cat requirements.txt 
+   64  systemctl start expense-report-webapp.service
+   65  sudo systemctl start expense-report-webapp.service
+   66  sudo systemctl status expense-report-webapp.service
+   67  ls /home/opc/expense_report/venv/bin/gunicorn
+   68  /home/opc/expense_report/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 app:app
+   69  ls /home/opc/expense_report/venv/bin/gunicorn
+   70  source /home/opc/expense_report/venv/bin/activate
+   71  pip install gunicorn
+   72  ls
+   73  cat gunicorn_config.py 
+   74  cd expense_report/
+   75  ls
+   76  cat app
+   77  cat app.py
+   78  sudo nano /etc/systemd/system/expense-report-webapp.service
+   79  sudo systemctl daemon-reload
+   80  sudo systemctl start expense-report-webapp.service
+   81  sudo systemctl status expense-report-webapp.service
+   82  ls
+   83  cd ..
+   84  ls
+   85  source /home/opc/expense_report/venv/bin/activate
+   86  pip install -r /home/opc/expense_report/requirements.txt
+   87  ls
+   88  nano requirements.txt 
+   89  sudo nano requirements.txt 
+   90  pip install -r requirements.txt
+   91  sudo systemctl daemon-reload
+   92  sudo systemctl start expense-report-webapp.service
+   93  sudo systemctl status expense-report-webapp.service
+   94  ls -l /home/opc/expense_report/venv/bin/gunicorn
+   95  chmod +x /home/opc/expense_report/venv/bin/gunicorn
+   96  ls -l /home/opc/expense_report/venv/bin/gunicorn
+   97  journalctl -u expense-report-webapp.service
+   98  journalctl -u expense-report-webapp.service -n 10
+   99  chmod a+x /home/opc/expense_report/venv/bin/gunicorn
+  100  sudo systemctl start expense-report-webapp.service
+  101  sudo systemctl status expense-report-webapp.service
+  102  journalctl -u expense-report-webapp.service -n 10
+  103  sudo chown -R opc:opc /home/opc/expense_report/venv
+  104  sudo systemctl start expense-report-webapp.service
+  105  journalctl -u expense-report-webapp.service -n 10
+  106  ls -Z /home/opc/expense_report/venv/bin/gunicorn
+  107  sudo chcon -t usr_t /home/opc/expense_report/venv/bin/gunicorn
+  108  sudo systemctl start expense-report-webapp.service
+  109  journalctl -u expense-report-webapp.service -n 10
+  110  deactivate
+  111  rm -rf /home/opc/expense_report/venv
+  112  ls
+  113  pwd
+  114  rm -rf /home/opc/venv
+  115  ls
+  116  cd expense_report/
+  117  ls
+  118  cd ..
+  119  ls
+  120  cd ..
+  121  ls
+  122  sudo rm -rf /home/opc/venv
+  123  ls
+  124  cd opc
+  125  pwd
+  126  ls
+  127  python3 -m venv venv
+  128  source venv/bin/activate
+  129  pip install -r requirements.txt
+  130  pip install --upgrade pip
+  131  pip install -r requirements.txt
+  132  gunicorn app:app
+  133  history
+  134  sudo nano /etc/systemd/system/expense-report-webapp.service
+  135  ls
+  136  cd expense_report/
+  137  ls
+  138  gunicorn app:app
+  139  sudo ufw status
+  140  ls
+  141  gunicorn -b 0.0.0.0:8000 app:app
+  142  gunicorn -b 132.145.210.86:8000 app:app
+  143  sudo nano /etc/systemd/system/expense-report-webapp.service
+  144  sudo systemctl daemon-reload
+  145  sudo systemctl restart expense-report-webapp.service
+  146  sudo systemctl status expense-report-webapp.service
+  147  ls /home/opc/expense_report/venv/bin/gunicorn
+  148  cat /venv/bin/gunicorn
+  149  ls
+  150  cd ..
+  151  ls
+  152  ls /home/opc/expense_report/venv/bin/gunicorn
+  153  cd venv
+  154  ls
+  155  cd bin
+  156  ls
+  157  cat gunicorn 
+  158  sudo nano /etc/systemd/system/expense-report-webapp.service
+  159  sudo systemctl daemon-reload
+  160  ls /home/opc/expense_report/venv/bin/gunicorn
+  161  ls /home/opc/venv/bin/gunicorn
+  162  sudo systemctl start expense-report-webapp.service
+  163  sudo systemctl status expense-report-webapp.service
+  164  ls /home/opc/venv/bin/gunicorn
+  165  ls -l /home/opc/venv/bin/gunicorn
+  166  ls
+  167  cd ..
+  168  ls
+  169  cd expense_report/
+  170  ls
+  171  cat app/py
+  172  cat app.py
+  173  journalctl -u expense-report-webapp.service -n 10
+  174  chmod +x /home/opc/venv/bin/gunicorn
+  175  sudo systemctl start expense-report-webapp.service
+  176  journalctl -u expense-report-webapp.service -n 10
+  177  sudo ufw status
+  178  sudo firewall-cmd --state
+  179  sudo firewall-cmd --list-all
+  180  sudo ExecStart=/home/opc/expense_report/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 /home/opc/expense_report/app:app
+  181  ExecStart=/home/opc/expense_report/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 /home/opc/expense_report/app:app
+  182  gunicorn -b 0.0.0.0:8000 app:app
+  183  sudo firewall-cmd --zone=public --add-port=8000/tcp --permanent
+  184  sudo firewall-cmd --reload
+  185  gunicorn -b 0.0.0.0:8000 app:app
+  186  pip install Pillow
+  187  ls
+  188  pip freeze > requirements.txt 
+  189  cat requirements.txt 
+  190  gunicorn -b 0.0.0.0:8000 app:app
+  191  ls
+  192  cat requirements.txt 
+  193  ls
+  194  cd ..
+  195  ls
+  196  cd 
+  197  ls
+  198  cd expense_report/
+  199  ls
+  200  cd
+  201  ls
+  202  gunicorn -b 0.0.0.0:8000 app:app
+  203  ls
+  204  cd expense_report/
+  205  gunicorn -b 0.0.0.0:8000 app:app
+  206  ls
+  207  cat requirements.txt 
+  208  ls
+  209  cd ..
+  210  ls
+  211  pwd
+  212  history
+  213  sudo nano /etc/systemd/system/expense-report-webapp.service
+  214  sudo systemctl daemon-reload
+  215  sudo systemctl restart expense-report-webapp.service
+  216   sudo systemctl status expense-report-webapp.service
+  217  ls
+  218  cd expense_report/
+  219  ls
+  220  sudo systemctl start expense-report-webapp.service
+  221   sudo systemctl status expense-report-webapp.service
+  222  ls
+  223  pwd
+  224  cd ..
+  225  ls
+  226  cd
+  227  ls
+  228  sudo nano /etc/systemd/system/expense-report-webapp.service
+  229  sudo systemctl daemon-reload
+  230  sudo systemctl restart expense-report-webapp.service
+  231   sudo systemctl status expense-report-webapp.service
+  232  sudo journalctl -u expense-report-webapp.service -n 10
+  233  sudo nano /etc/systemd/system/expense-report-webapp.service
+  234  sudo systemctl daemon-reload
+  235  sudo systemctl restart expense-report-webapp.service
+  236   sudo systemctl status expense-report-webapp.service
+  237  sudo journalctl -u expense-report-webapp.service -n 10
+  238  gunicorn -b 0.0.0.0:8000 app:app
+  239  ls
+  240  cd expense_report/
+  241  ls
+  242  sudo systemctl restart expense-report-webapp.service
+  243   sudo systemctl status expense-report-webapp.service
+  244  gunicorn -b 0.0.0.0:8000 app:app
+  245  sudo nano /etc/systemd/system/expense-report-webapp.service
+  246  ls
+  247  sudo systemctl daemon-reload
+  248  sudo systemctl restart expense-report-webapp.service
+  249  sudo journalctl -u expense-report-webapp.service
+  250   sudo systemctl status expense-report-webapp.service
+  251  sudo journalctl -u expense-report-webapp.service -n 10
+  252  chmod +x /home/opc/venv/bin/gunicorn
+  253  sudo systemctl daemon-reload
+  254  sudo systemctl restart expense-report-webapp.service
+  255  sudo journalctl -u expense-report-webapp.service -n 10
+  256  ls
+  257  sudo nano /etc/systemd/system/expense-report-webapp.service
+  258  exit
+  259  systemctl list-unit-files --type=service
+  260  ls /etc/systemd/system/*app*.service
+  261  sudo nano /etc/systemd/system/expense-report-webapp.service
+  262  sudo systemctl daemon-reload
+  263  sudo systemctl restart expense-report-webapp.service
+  264   sudo systemctl status expense-report-webapp.service
+  265  ls
+  266  cd expense_report/
+  267  ls
+  268  sudo systemctl start expense-report-webapp.service
+  269   sudo systemctl status expense-report-webapp.service
+  270  /home/opc/venv/bin/gunicorn --version
+  271  ls -l /home/opc/venv/bin/gunicorn
+  272  ls -ld /home/opc/expense_report
+  273  ls
+  274  cat app.py 
+  275  sudo nano /etc/systemd/system/expense-report-webapp.service
+  276  /home/opc/venv/bin/gunicorn app:app --workers 4 --bind unix:/home/opc/expense_report/expense_report.sock
+  277  /home/opc/venv/bin/gunicorn app:app --workers 4 --bind 0.0.0.0:8000
+  278  sudo nano /etc/systemd/system/expense-report-webapp.service
+  279  sudo systemctl daemon-reload
+  280  sudo systemctl restart expense-report-webapp.service
+  281   sudo systemctl status expense-report-webapp.service
+  282  sudo setenforce 0
+  283  sudo systemctl daemon-reload
+  284  sudo systemctl restart expense-report-webapp.service
+  285   sudo systemctl status expense-report-webapp.service
+  286  sudo grep expense-report-webapp.service /var/log/audit/audit.log | audit2why
+  287  sudo systemctl stop expense-report-webapp.service
+  288  sudo systemctl start expense-report-webapp.service
+  289  sudo grep expense-report-webapp.service /var/log/audit/audit.log | audit2why
+  290  ls
+  291  cat requirements.txt 
+  292  cd expense_report/
+  293  ls
+  294  cat requirements.txt 
+  295  cd 
+  296  ls
+  297  exit
+  298  ls
+  299  cd expense_report/
+  300  ls
+  301  cat requirements.txt 
+  302  ls
+  303  sudo rm requirements.txt 
+  304  ls
+  305  pip freeze > requirements.txt
+  306  cd ..
+  307  ls
+  308  source venv/bin/activate
+  309  cd expense_report/
+  310  ls
+  311  sudo rm requirements.txt 
+  312  ls
+  313  pip freeze > requirements.txt
+  314  cat requirements.txt 
+  315  ls
+  316  cat app.py
+  317  sudo apt-get update
+  318  sudo yum update -y
+  319  ls
+  320  cat gunicorn_config.py 
+  321  cat requirements.txt 
+  322  cd expense_report/
+  323  ls
+  324  cat requirements.txt 
+  325  exit
+  326  ls
+  327  sudo systemctl status nginx
+  328  ls
+  329  sudo systemctl status gunicorn
+  330  cd expense_report/
+  331  ls
+  332  cat app.py 
+  333  ls
+  334  pwd
+  335  sudo yum install nginx
+  336  ps -fp 10046
+  337  sudo kill 10046
+  338  sudo yum install nginx
+  339  ls
+  340  sudo dnf install nginx
+  341  ls
+  342  source venv/bin/activate
+  343  sudo kill -9 10046
+  344  sudo dnf clean all
+  345  sudo rm -f /var/lib/dnf/dnf.lock
+  346  sudo dnf install nginx
+  347  dmesg
+  348  free -m
+  349  sudo dnf list installed
+  350  sudo dnf clean all
+  351  sudo sync; sudo echo 3 > /proc/sys/vm/drop_caches
+  352  echo 3 | sudo tee /proc/sys/vm/drop_caches
+  353  (venv) [opc@testinstance ~]$ sudo dnf clean all
+  354  32 files removed
+  355  (venv) [opc@testinstance ~]$ sudo sync; sudo echo 3 > /proc/sys/vm/drop_caches
+  356  -bash: /proc/sys/vm/drop_caches: Permission denied
+  357  (venv) [opc@testinstance ~]$ echo 3 | sudo tee /proc/sys/vm/drop_caches
+  358  3
+  359  sudo dnf install nginx
+  360  ls
+  361  sudo systemctl status firewalld
+  362  sudo firewall-cmd --list-all
+  363  journalctl --vacuum-size=1G
+  364  tmpwatch
+  365  ls
+  366  cat gunicorn_config.py 
+  367  cd expense_report/
+  368  ls
+  369  cat app.py 
+  370  cat gunicorn_config.py 
+  371  ls
+  372  cd ..
+  373  cat gunicorn_config.py 
+  374  sestatus
+  375  top
+  376  swapon --show
+  377  sudo semanage port -l | grep http_port_t
+  378  sudo semanage port -a -t http_port_t -p tcp 8000
+  379  sudo ausearch -m avc -ts recent | audit2why
+  380  ls
+  381  pwd
+  382  cd expense_report/
+  383  ls
+  384  sudo setenforce 0
+  385  sudo setenforce 1
+  386  sudo setenforce 0
+  387  sudo fallocate -l 1G /swapfile  # Create a 1GB swap file
+  388  sudo chmod 600 /swapfile  # Set correct permissions
+  389  sudo mkswap /swapfile  # Mark file as swap space
+  390  sudo swapon /swapfile  # Enable swap space
+  391  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab  # Make swap permanent
+  392  swapon --show
+  393  free -m
+  394  sudo dnf install nginx -y
+  395  sudo nano /etc/systemd/system/expense_report.service
+  396  sudo systemctl status expense_report
+  397  ls
+  398  source venv/bin/activate
+  399  ce expense_report/
+  400  ls
+  401  cd expense_report/
+  402  ls
+  403  python app.py
+  404  top
+  405  history
+  406  docker login
+  407  sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+  408  sudo dnf install docker-ce docker-ce-cli containerd.io
+  409  sudo systemctl start docker
+  410  sudo systemctl enable docker
+  411  docker run hello-world
+  412  sudo usermod -aG docker $USER
+  413  docker run hello-world
+  414  exit
+  415  groups
+  416  docker run hello-world
+  417  docker login
+  418  ls
+  419  cd expense_report/
+  420  ls
+  421  nano Dockerfile
+  422  docker build -t tsmith4014/expense_report:latest .
+  423  ls
+  424  cat requirements.txt 
+  425  nano requirements.txt 
+  426  docker build -t tsmith4014/expense_report:latest .
+  427  docker push tsmith4014/expense_report:latest
+  428  exit
+  429  ls
+  430  which git
+  431  exit
+  432  ps aux | grep gunicorn
+  433  ps aux | grep python
+  434  sudo pkill gunicorn
+  435  ps aux | grep gunicorn
+  436  ps aux | grep python
+  437  sudo killall -9 gunicorn
+  438  sudo killall -9 python
+  439  clear
+  440  ps aux | grep -i 'gunicorn' | grep -v grep
+  441  sudo pkill -f 'gunicorn'
+  442  ps aux | grep -i 'gunicorn' | grep -v grep
+  443  sudo pkill -f 'gunicorn'
+  444  ps aux | grep -i 'gunicorn' | grep -v grep
+  445  sudo systemctl start expense_report.service
+  446  sudo systemctl status expense_report.service
+  447  sudo systemctl stop expense_report
+  448  sudo systemctl status expense_report
+  449  sudo lsof -i :8000
+  450  kill 53775
+  451  sudo kill 53775
+  452  sudo lsof -i :8000
+  453  docker run -p 8000:8000 tsmith4014/expense_report:latest
+  454  sudo docker run -p 8000:8000 tsmith4014/expense_report:latest
+  455  sudo lsof -i :8000
+  456  sudo systemctl disable expense_report
+  457  sudo lsof -i :8000
+  458  sudo pkill gunicorn
+  459  sudo lsof -i :8000
+  460  sudo docker run -p 8000:8000 tsmith4014/expense_report:latest
+  461  sudo lsof -i :8000
+  462  sudo pkill gunicorn
+  463  sudo lsof -i :8000
+  464  systemctl list-units --type=service
+  465  sudo pkill -9 gunicorn
+  466  sudo lsof -i :8000
+  467  sudo docker run -p 8000:8000 tsmith4014/expense_report:latest
+  468  sudo systemctl stop expense-report-webapp.service
+  469  sudo systemctl disable expense-report-webapp.service
+  470  sudo systemctl stop expense_report.service
+  471  sudo systemctl disable expense_report.service
+  472  sudo systemctl status expense-report-webapp.service
+  473  sudo systemctl status expense_report.service
+  474  sudo docker run -p 8000:8000 tsmith4014/expense_report:latest
+  475  ls
+  476  cd expense_report/
+  477  ls
+  478  cat requirements.txt 
+  479  which git
+  480  ls
+  481  sudo systemctl status niginx
+  482  history
+  483  sudo docker run -p 8000:8000 tsmith4014/expense_report:latest
+  484  exit
+  485  ls
+  486  source venv/bin/activate
+  487  cd expense_report/
+  488  ls
+  489  cd ..
+  490  cat gunicorn_config.py 
+  491  systemctl status expense-report-webapp.service
+  492  sudo systemctl start expense-report-webapp.service
+  493  systemctl status expense-report-webapp.service
+  494  journalctl -u expense-report-webapp.service
+  495  ls
+  496  cd expense_report/
+  497  ls
+  498  cd templates/
+  499  ls
+  500  nano index.html 
+  501  docker --version
+  502  top
+  503  docker images
+  504  top
+  505  cat /var/log/audit/audit.log
+  506  sudo cat /var/log/audit/audit.log
+  507  sudo tail -n 20 /var/log/audit/audit.log
+  508  clear
+  509  sudo tail -n 20 /var/log/audit/audit.log
+  510  clear
+  511  sudo ausearch -m AVC
+  512  sudo journalctl | grep setroubleshoot
+  513  sudo sestatus
+  514  sudo ausearch
+  515  ausearch
+  516  ls
+  517  cd ..
+  518  ls
+  519  cd ap
+  520  cat app.py 
+  521  ls
+  522  cat populate_excel.py 
+  523  ls
+  524  pwd
+  525  history
+  526  ocker images
+  527  docker images
+  528  sudo semanage fcontext -a -t httpd_sys_rw_content_t "/home/opc/expense_report(/.*)?"
+  529  sudo restorecon -R /home/opc/expense_report
+  530  ps aux | grep gunicorn
+  531  ps aux | grep python
+  532  systemctl status expense-report-webapp.service
+  533  ip addr show
+  534  systemctl status expense-report-webapp.service
+  535  history
+  536  systemctl status expense-report-webapp.service
+  537  sudo ausearch -m avc -ts recent
+  538  sudo setenforce 0
+  539  systemctl status expense-report-webapp.service
+  540  sudo sestatus
+  541  sudo ausearch -m avc -ts recent
+  542  sudo semanage fcontext -d "/home/opc/expense_report(/.*)?"
+  543  sudo restorecon -R /home/opc/expense_report
+  544  sudo sestatus
+  545  systemctl status expense-report-webapp.service
+  546  sudo systemctl restart expense-report-webapp.service
+  547  systemctl status expense-report-webapp.service
+  548  exit
+  549  systemctl status expense-report-webapp.service
+  550  docker images
+  551  docker run -p 8001:8000 tsmith4014/expense_report
+  552  exit
+  553  docker ps
+  554  docker logs loving_mccarthy
+  555  sudo firewall-cmd --add-port=8001/tcp --permanent
+  556  sudo firewall-cmd --reload
+  557  docker logs d31aa6e4a690
+  558  docker inspect d31aa6e4a690
+  559  curl http://localhost:8001
+  560  ocker ps
+  561  docker ps
+  562   top
+  563  ls
+  564  cd expense_report/
+  565  ls
+  566  cat Dockerfile 
+  567  docker ps
+  568  docker imagegs
+  569  docker images
+  570  docker image history
+  571  docker image history 5a0eec31692c
+  572  pip-check
+  573  pip install pip-check
+  574  ls
+  575  cd ..
+  576  ls
+  577  source venv/bin/activate
+  578  pip install pip-check
+  579  pip-check
+  580  pip install pipdeptree
+  581  pipdeptree
+  582  ls
+  583  cd expense_report/
+  584  ls
+  585  history
+  586  ausearch -m avc -ts recentsudo sestatus
+  587   sudo sestatus
+  588  sudo semanage fcontext -d "/home/opc/expense_report(/.*)?"
+  589  sudo restorecon -R /home/opc/expense_report
+  590  top
+  591  ok so i still see the high resource from the troubleshoot thing...how can we get this down?
+  592  top - 21:17:48 up 14 days, 15:54, 2 users, load average: 0.58, 0.17, 0.11 Tasks: 185 total, 3 running, 182 sleeping, 0 stopped, 0 zombie %Cpu(s): 4.6 us, 4.5 sy, 3.5 ni, 35.0 id, 13.5 wa, 0.0 hi, 0.3 si, 38.6 st MiB Mem : 948.4 total, 65.1 free, 587.6 used, 295.7 buff/cache MiB Swap: 2896.0 total, 2256.5 free, 639.5 used. 204.9 avail Mem
+  593  723604 root 20 0 55616 19336 3332 S 9.6 2.0 0:01.53 gunicorn
+  594  10 root 0 -20 0 0 0 I 3.6 0.0 0:32.36 kworker/0:1H-kblockd
+  595  724208 root 20 0 148040 21776 6532 D 2.0 2.2 0:00.74 gunicorn
+  596  725408 setroub+ 25 5 538516 138704 20980 S 2.0 14.3 0:02.95 setroubleshootd
+  597  687324 root 20 0 1516852 4516 2140 S 1.7 0.5 38:14.54 osms-agent
+  598  99 root 0 -20 0 0 0 I 0.3 0.0 0:38.71 kworker/1:1H-kblockd
+  599  101 root 20 0 0 0 0 S 0.3 0.0 4:30.21 kswapd0:0
+  600  1329 root 20 0 0 0 0 S 0.3 0.0 8:17.71 xfsaild/dm-1
+  601  1576 root 20 0 405228 4432 3652 S 0.3 0.5 58:43.85 tuned
+  602  57469 root 20 0 2173908 25900 7048 S 0.3 2.7 7:46.47 dockerd
+  603  725404 opc 20 0 54464 4544 3640 R 0.3 0.5 0:00.09 top
+  604  725424 root 20 0 372196 85368 16976 S 0.3 8.8 0:01.56 SetroubleshootP
+  605  1 root 20 0 255336 8380 6068 S 0.0 0.9 1:05.75 systemd
+  606  2 root 20 0 0 0 0 S 0.0 0.0 0:00.56 kthreadd
+  607  3 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 rcu_gp
+  608  4 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 rcu_par_gp
+  609  5 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 slub_flushwq
+  610  6 root 0 -20 0 0 0 I 0.0 0.0 0:0
+  611  ausearch -m avc -ts recent
+  612  sudo systemctl stop setroubleshoot
+  613  sudo systemctl disable setroubleshoot
+  614  sudo ausearch -m avc -ts recent
+  615  sudo semanage fcontext -a -t httpd_sys_content_t "/home/opc/expense_report(/.*)?"
+  616  sudo semanage fcontext -a -t httpd_sys_content_t "/home/opc/venv(/.*)?"
+  617  sudo restorecon -R /home/opc/expense_report
+  618  sudo restorecon -R /home/opc/venv
+  619  top
+  620  sudo ausearch -m avc -ts recent
+  621  ls
+  622  ls /etc/systemd/system
+  623  cat expense-report-webapp.service 
+  624  ca tetc/systemd/system/expense-report-webapp.service 
+  625  cat etc/systemd/system/expense-report-webapp.service 
+  626  cat /etc/systemd/system/expense-report-webapp.service 
+  627  cat /etc/systemd/system/expense_report.service  
+  628  sudo systemctl status expense-report-webapp.service
+  629  sudo systemctl status expense_report.service
+  630  sudo rm /etc/systemd/system/expense_report.service
+  631  cat etc/systemd/system/expense-report-webapp.service 
+  632  cat /etc/systemd/system/expense-report-webapp.service 
+  633  nano /etc/systemd/system/expense-report-webapp.service 
+  634  sudo nano /etc/systemd/system/expense-report-webapp.service 
+  635  sudo systemctl daemon-reload
+  636  sudo systemctl restart expense-report-webapp.service
+  637  top
+  638  history
+  639   sudo ausearch -m avc -ts recent
+  640  top
+  641  sudo chcon -t httpd_sys_rw_content_t output.xlsx
+  642  top
+  643  ls
+  644  top
+  645  ls
+  646  pwd
+  647  sudo semanage fcontext -a -t httpd_sys_rw_content_t "/home/opc/expense_report/output.xlsx"
+  648  sudo restorecon -v "/home/opc/expense_report/output.xlsx"
+  649  top
+  650  ls
+  651  docker build -t tsmith4014/expense_report .
+  652  docker push tsmith4014/expense_report
+  653  docker images
+  654  docker image rm d2c94e258dcb
+  655  docker ps
+  656  docker ps -all
+  657  docker rm 5acc4c905953
+  658  docker image rm d2c94e258dcb
+  659  docker images
+  660  history
+  661  docker run -d --restart -p 8001:8000 0cb25045ad75
+  662  docker run -d --restart always -p 8001:8000 0cb25045ad75
+  663  systemctl list-units --type=service
+  664  sudo systemctl stop expense_report.service
+  665  sudo systemctl disable expense_report.service
+  666  sudo rm /etc/systemd/system/expense_report.service
+  667  systemctl list-units --type=service
+  668  sudo systemctl stop expense-report-webapp.service
+  669  sudo systemctl disable expense-report-webapp.service
+  670  sudo systemctl status expense-report-webapp.service
+  671  ls
+  672  history
+  673  docker run -d --restart always -p 8000:8000 0cb25045ad75
+  674  top
+  675  docker ps
+  676  docker stop b70109d89cf0
+  677  docker rm b70109d89cf0
+  678  docker ps
+  679  docker images
+  680  docker run -d --restart always -p 8000:8001 0cb25045ad75
+  681  docker ps
+  682  docker ps -1
+  683  docker ps -a
+  684  docker rm -f 41b7d82df072 2970be0e1a8f d31aa6e4a690 e61e44233bf1 d2c2a14920e3 318691e40a0f 37fae0e1d9c0 f81917247c81
+  685  docker ps -1
+  686  docker ps -a
+  687  docker images
+  688  docker run -d --restart always -p 8001:8000 5a0eec31692c
+  689  docker ps 
+  690  top
+  691  history
+  692  docker ps
+  693  docker logs gallant_stonebraker
+  694  ls
+  695  history
+  696  docker ps
+  697  docker stop 6bd7754aeb51
+  698  docker stop 3a2ef392c94b
+  699  docker ps
+  700  docker ps -a
+  701  ls
+  702  history
+  703  docker ps
+  704  docker images
+  705  ls
+  706  cd expense_report/
+  707  ls
+  708  cat Dockerfile 
+  709  pwd
+  710  ls
+  711  cd templates/
+  712  ls
+  713  pwd
+  714  ls
+  715  cd index.html
+  716  ls
+  717  cd ..
+  718  ls
+  719  cd templates/
+  720  ls
+  721  history
+  722  docker images
+  723  docker run -d --restart always -p 8001:8000 0cb25045ad75
+  724  docker ps
+  725  cd ..
+  726  ls
+  727  cd templates/
+  728  ls
+  729  cat index.html 
+  730  history
+  731  docker ps
+  732  history
+   733  docker ps
+  734  ls
+  735  source venv/bin/activate
+  736  cd expense_report/
+  737  ls
+  738  cat app.py 
+  739  nano app.py 
+  740  docker ps -a
+  741  sudo systemctl --type=service --state=running
+  742  sudo ss -tuln
+  743  ps -aux
+  744  sudo systemctl status expense-report-webapp.service
+  745  systemctl list-units --type=service
+  746  history
+  747   docker images
+  748  ls
+  749  docker build -t tsmith4014/expense_report:production .
+  750  docker push tsmith4014/expense_report:production
+  751   docker images
+  752  docker ps
+  753  docker stop ea7e5aa9c904
+  754  docker rm ea7e5aa9c904
+  755  docker run -d --restart always -p 8001:8000 9e81e908cb42
+  756  history
+  757  ls
+  758  source venv/bin/activate
+  759  cd expense_report/
+  760  ls
+  761  docker ps
+  762  ls
+  763  cat app.py 
+  764  ls
+  765  cat Dockerfile 
+  766  ls
+  767  cat app.py 
+  768  ls
+  769  nano nginx.conf
+  770  cat Dockerfile 
+  771  nano Dockerfile 
+  772  ls
+  773  cat DockerfileBACKUP.txt 
+  774  ls
+  775  cat Dockerfile
+  776  nano Dockerfile
+  777  history
+  778  docker stop 9e81e908cb42
+  779  docker ps
+  780  docker stop 0db017465faf
+  781  docker ps
+  782  docker ps -a
+  783  docker rm $(docker ps -a -q)
+  784  docker ps -a
+  785  docker images
+  786  cat /etc/nginx/sites-enabled/default
+  787  ls
+  788  cat nginx.conf 
+  789  clear
+  790  history
+  791  docker build -t tsmith4014/expense_report:nginx .
+  792  history
+  793  docker ps
+  794  docker images
+  795  docker run -d --restart always -p 8001:80 f8419cfa53c0
+  796  docker images
+  797  ls
+  798  docker rmi tsmith4014/expense_report:production
+  799  docker rmi tsmith4014/expense_report:latest
+  800  docker rmi 5a0eec31692c
+  801  docker images
+  802  ls
+  803  cat Dockerfile
+  804  ls
+  805  exit
+  806  ls
+  807  cat /var/log/nginx/access.log
+  808  sudo cat /var/log/nginx/access.log
+  809  sudo systemctl status nginx
+  810  docker ps
+  811  docker logs 03a5b157b794
+  812  docker images
+  813  docker inspect 03a5b157b794
+  814  docker exec reverent_torvalds curl http://127.0.0.1:80
+  815  docker logs reverent_torvalds
+  816  apt-get install curl -y 
+  817  docker exec -it reverent_torvalds /bin/sh -c "apk add --no-cache curl && curl http://127.0.0.1:80"
+  818  docker exec -it reverent_torvalds /bin/sh -c "python -c 'import requests; response = requests.get(\"http://127.0.0.1:80\"); print(response.text)'"
+  819  docker exec -it reverent_torvalds /bin/sh -c "yum install curl -y"
+  820  docker exec -it reverent_torvalds /bin/sh -c "dnf install curl -y"
+  821  docker exec -it reverent_torvalds /bin/sh
+  822  docker exec -it reverent_torvalds /bin/sh -c "apt-get update && apt-get install curl -y"
+  823  docker exec -it reverent_torvalds /bin/sh -c "curl http://127.0.0.1:80"
+  824  ls
+  825  cd expense_report/
+  826  ls
+  827  cat nginx.conf 
+  828  cat /etc/nginx/nginx.conf
+  829  docker exec -it reverent_torvalds /bin/sh
+  830  ls
+  831  history
+  832  git status
+  833  ls
+  834  source venv/bin/activate
+  835  git status
+  836  cd expense_report/
+  837  git status
+  838  git checkout -b oracledocker
+  839  git add .
+  840  git commit -m "New Oracle instance Docker branch commit"
+  841  git config --global user.name "tsmith4014"
+  842  git config --global user.email "chjthomps@gmail.com"
+  843  git commit -m "New Oracle instance Docker branch commit"
+
+  846  exit
+  847  history
+
+
+
+
+  1092  sudo cat (venv) [opc@testinstance sites-available]$ sudo ls /etc/letsencrypt/live
+ 1093  sudo cat expenseapp.devopschad.com 
+ 1094  sudo ls /etc/letsencrypt/live
+ 1095  sudo ls /etc/letsencrypt/live/expenseapp.devopschad.com
+ 1096  sudo nano /etc/nginx/sites-available/expenseapp
+ 1097  sudo nginx -t
+ 1098  sudo systemctl reload nginx
+ 1099  ls
+ 1100  docker ps
+ 1101  docker ps -l
+ 1102  history
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ############################################################################################################
+
+
+
+   152  docker ps
+  153  history
+  154  docker exec -it 084ba84d8c84 /bin/sh
+  155  docker ps
+  156  docker exec -it ecdce317777d /bin/sh
+  157  history
+  158  docker restart ecdce317777d 
+  159  docker exec -it ecdce317777d /bin/sh
+  160  docker restart ecdce317777d 
+  161  docker exec -it ecdce317777d /bin/sh
+  162  docker restart ecdce317777d 
+  163  docker exec -it ecdce317777d /bin/sh
+  164  docker ps
+  165  docker logs -f e7407c020351 
+  166  history
+  167  docker ps
+  168  docker logs gallant_visvesvaraya
+  169  docker exec -it gallant_visvesvaraya bash
+  170  docker ps
+  171  docker exec -it thirsty_dijk
+  172  history
+  173  docker exec -it thirsty_dijk
+  174  docker exec -it thirsty_dijk bash
+  175  docker ps
+  176  docker exec -it thirsty_dijkstra bash
+  177  ls
+  178  source venv/bin/activate
+  179  cd expense_report/
+  180  ls
+  181  ls -la
+  182  sudo certbot renew --dry-run
+  183  deactivate
+  184  sudo certbot renew --dry-run
+  185  ls
+  186  docker ps
+  187  cat Dockerfile
+  188  cd /etc/letsencrypt/live
+  189  cd
+  190  cd /etc/letsencrypt/live
+  191  ls
+  192  sudo apt-get update
+  193  sudo apt-get install certbot python3-certbot-nginx
+  194  sudo yum update
+  195  sudo yum install certbot python3-certbot-nginx
+  196  sudo dnf install oracle-epel-release-el8
+  197  sudo dnf install certbot python3-certbot-nginx
+  198  sudo dnf config-manager --enable ol8_codeready_builder
+  199  sudo dnf install certbot python3-certbot-nginx
+  200  sudo dnf install snapd
+  201  sudo systemctl enable --now snapd.socket
+  202  sudo ln -s /var/lib/snapd/snap /snap  # Create a symbolic link for classic snap support
+  203  sudo dnf install oracle-epel-release-el8
+  204  sudo dnf config-manager --set-enabled ol8_developer_EPEL
+  205  sudo dnf makecache
+  206  history
+  207  sudo dnf install certbot python3-certbot-nginx
+  208  sudo certbot --nginx -d devopschad.com -d www.devopschad.com
+  209  ls
+  210  source venv/bin/activate
+  211  sudo systemctl list-units --type=service --state=running
+  212  ls
+  213  cat requirements.txt 
+  214  cat gunicorn_config.py 
+  215  cd expense_report/
+  216  ls
+  217  cat requirements.txt 
+  218  cat nginx.conf 
+  219  sudo certbot renew --dry-run
+  220  ls
+  221  cat /etc/systemd/system/expense-report-webapp.service
+  222  sudo systemctl status expense-report-webapp
+  223  sudo systemctl start expense-report-webapp
+  224  sudo systemctl status expense-report-webapp
+  225  sudo systemctl status nginx
+  226  sudo systemctl start nginx
+  227  sudo systemctl status nginx
+  228  docker ps
+  229  docker -ps
+  230  docker docker ps -a
+  231  docker ps -a
+  232  docker restart 60620800dda6
+  233  docker ps
+  234  history
+  235  sudo certbot renew --dry-run
+  236  sudo certbot --nginx -d devopschad.com -d www.devopschad.com
+  237  history
+  238  sudo systemctl status nginx
+  239  sudo systemctl status expense-report-webapp
+  240  sudo certbot --nginx -d devopschad.com -d www.devopschad.com
+  241  docker stop 60620800dda6
+  242  docker ps
+  243  sudo systemctl start nginx
+  244  sudo systemctl status nginx
+  245  sudo lsof -i :80
+  246  sudo netstat -tuln | grep :80
+  247  sudo systemctl status nginxsudo systemctl restart nginx
+  248  sudo systemctl stop nginx
+  249  sudo lsof -i :80
+  250  sudo netstat -tuln | grep :80
+  251  sudo systemctl stop nginx
+  252  sudo pkill nginx
+  253  sudo ps aux | grep nginx
+  254  sudo kill -9 <PID>
+  255  sudo lsof -i :80
+  256  sudo netstat -tuln | grep :80
+  257  sudo systemctl status nginx
+  258  sudo systemctl list-units --type=service
+  259  sudo systemctl status expense-report-webapp.service 
+  260  sudo systemctl stop expense-report-webapp
+  261  sudo systemctl disable expense-report-webapp
+  262  sudo lsof -i :80
+  263  sudo netstat -tuln | grep :80
+  264  sudo systemctl status nginx
+  265  sudo systemctl stop nginx
+  266  sudo pkill nginx
+  267  sudo ps aux | grep nginx
+  268  sudo lsof -i :80
+  269  sudo netstat -tuln | grep :80
+  270  sudo systemctl status nginx
+  271  sudo systemctl status oracle-cloud-agent
+  272  sudo systemctl status nginx
+  273  sudo systemctl stop oracle-cloud-agent
+  274  sudo systemctl stop osms-agen
+  275  sudo lsof -i :80
+  276  sudo netstat -tuln | grep :80
+  277  sudo lsof -i :80
+  278  sudo systemctl start nginx
+  279  sudo systemctl status nginx
+  280  sudo systemctl start expense-report-webapp
+  281  sudo systemctl status expense-report-webapp
+  282  sudo nano /etc/systemd/system/expense-report-webapp.service
+  283  which gunicorn
+  284  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8000
+  285  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8001
+  286  sudo systemctl daemon-reload
+  287  sudo systemctl start expense-report-webapp
+  288  sudo systemctl status expense-report-webapp
+  289  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8001 --daemon
+  290  sudo nano /etc/systemd/system/expense-report-webapp.service
+  291  ls
+  292  cd templates/
+  293  ls
+  294  sudo certbot --nginx -d devopschad.com -d www.devopschad.com
+  295  sudo certbot --nginx -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  296  dig expenseapp.devopschad.com
+  297  dig www.expenseapp.devopschad.com
+  298  sudo ufw status
+  299  cat /etc/nginx/sites-available/
+  300  sudo firewall-cmd --list-all
+  301  sudo firewall-cmd --permanent --add-service=http
+  302  sudo firewall-cmd --permanent --add-service=https
+  303  sudo firewall-cmd --reload
+  304  sudo firewall-cmd --list-all
+  305  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  306  sudo certbot --nginx -d devopschad.com -d www.devopschad.com
+  307  sudo certbot --nginx -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  308  sudo mkdir -p /var/www/html/.well-known/acme-challenge
+  309  sudo chown -R www-data:www-data /var/www/html/.well-known
+  310  sudo systemctl reload nginx
+  311  sudo journalctl -u certbot
+  312  sudo mkdir -p /var/www/html/.well-known/acme-challenge
+  313  sudo chown -R www-data:www-data /var/www/html/.well-known
+  314  history
+  315  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  316  sudo certbot --nginx -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  317  grep -i 'user' /etc/nginx/nginx.conf
+  318  sudo chown -R nginx:nginx /var/www/html/.well-known
+  319  sudo systemctl reload nginx
+  320  sudo certbot --nginx -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  321  sudo certbot --nginx -d expenseapp.devopschad.com -d www.devopschad.com
+  322  [opc@dnd-companion-2 ~]$ openssl x509 -in /etc/letsencrypt/live/devopschad.com/cert.pem -noout -text | grep -A 1 "Subject Alternative Name:"
+  323  openssl x509 -in /etc/letsencrypt/live/devopschad.com/cert.pem -noout -text | grep -A 1 "Subject Alternative Name:"
+  324  sudo openssl x509 -in /etc/letsencrypt/live/devopschad.com/cert.pem -noout -text | grep -A 1 "Subject:"
+  325  sudo openssl x509 -in /etc/letsencrypt/live/devopschad.com/cert.pem -noout -text | grep -A 1 "Subject Alternative Name:"
+  326  sudo firewall-cmd --permanent --add-service=http
+  327  sudo firewall-cmd --permanent --add-service=https
+  328  sudo firewall-cmd --reload
+  329  docker ps
+  330  hitsory
+  331  history
+  332   sudo systemctl status nginx
+  333  sudo systemctl status expense-report-webapp
+  334  sudo nano /etc/systemd/system/expense-report-webapp.service
+  335   sudo systemctl daemon-reload
+  336  sudo systemctl status expense-report-webapp
+  337  sudo systemctl start expense-report-webapp
+  338  sudo systemctl status expense-report-webapp
+  339  history
+  340  sudo nano /etc/systemd/system/expense-report-webapp.service
+  341  ps aux | grep gunicorn
+  342  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  343  cat /etc/nginx/sites-enabled/
+  344  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  345  sudo mkdir -p /var/www/html/.well-known/acme-challenge
+  346  sudo chown -R nginx:nginx /var/www/html/.well-known
+  347  sudo systemctl reload nginx
+  348  sudo systemctl status nginx
+  349  sudo certbot --nginx -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  350  sudo mv /etc/nginx/conf.d/expenseapp.conf /etc/nginx/sites-available/expenseapp
+  351  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  352  sudo nano /etc/nginx/sites-available/expenseapp
+  353  sudo mkdir /etc/nginx/sites-available/expenseapp
+  354  sudo mkdir /etc/nginx/sites-available
+  355  sudo nano /etc/nginx/sites-available/expenseapp
+  356  sudo systemctl reload nginx
+  357  sudo systemctl status nginx
+  358  sudo certbot --nginx -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  359  sudo systemctl stop nginx
+  360  sudo certbot certonly --standalone -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  361  sudo nano /etc/nginx/sites-available/expenseapp
+  362  sudo certbot certonly --standalone -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  363  sudo certbot certonly --standalone -d expenseapp.devopschad.com -d www.devopschad.com
+  364  sudo systemctl reload nginx
+  365  sudo systemctl start nginx
+  366  sudo systemctl reload nginx
+  367  sudo systemctl status nginx
+  368  history
+  369  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  370  sudo cat /etc/nginx/sites-enabled/
+  371  sudo certbot certonly --standalone -d expenseapp.devopschad.com -d www.expenseapp.devopschad.com
+  372  cat /var/log/letsencrypt/letsencrypt.log
+  373  sudo certbot --nginx -d expenseapp.devopschad.com
+  374  sudo certbot certonly --manual --preferred-challenges=dns -d devopschad.com -d *.devopschad.com
+  375  sudo nano /etc/nginx/sites-available/expenseapp
+  376  sudo certbot certonly --manual --preferred-challenges=dns -d expenseapp.devopschad.com
+  377  ls
+  378  cd expense_report/
+  379  ls
+  380  cat Dockerfile
+  381  cat nginx.conf 
+  382  sudo nano /etc/nginx/sites-enabled
+  383  history
+  384  sudo systemctl reload nginx
+  385  sudo systemctl status nginx
+  386  sudo certbot certonly --manual --preferred-challenges=dns -d expenseapp.devopschad.com
+  387  sudo nano /etc/nginx/sites-available/
+  388  history
+  389  sudo certbot certonly --manual --preferred-challenges=dns -d expenseapp.devopschad.com
+  390  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  391  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  392  sudo sed -n '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/p' /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem | head -n 17 > domain_certificate.pem
+  393  sudo sed -n '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/p' /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem | tail -n +18 > intermediate_certificate.pem
+  394  sudo cp /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem ./privatekey.pem
+  395  ls
+  396  cat domain_certificate.pem 
+  397  ls
+  398  cat domain_certificate.pem 
+  399  cat privatekey.pem 
+  400  sudo cat privatekey.pem 
+  401  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  402  sudo cp /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem ./privatekey.pem
+  403  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  404  history
+  405  docker ps
+  406  docker ps -l
+  407  sudo systemctl status nginx
+  408  sudo systemctl status expense-report-webapp
+  409  ps aux | grep gunicorn
+  410  pkill gunicorn
+  411  ps aux | grep gunicorn
+  412  sudo systemctl stop nginx
+  413  sudo systemctl status nginx
+  414  docker ps -l
+  415  sudo docker start 60620800dda6
+  416  sudo docker ps
+  417  ls
+  418  docker ps
+  419  docker ps -l
+  420  history
+  421   sudo systemctl status nginx
+  422   sudo systemctl status expense-report-webapp
+  423   docker start 60620800dda6
+  424  docker ps
+  425  curl http://localhost:8001
+  426  curl -I https://localhost
+  427  sestatus
+  428  sudo semanage port -a -t http_port_t -p tcp 443
+  429  sudo firewall-cmd --list-all --zone=public
+  430  sudo firewall-cmd --zone=public --add-service=https
+  431  sudo firewall-cmd --zone=public --permanent --add-service=https
+  432  curl -i http://10.0.1.248:8001
+  433  nc -zvw3 10.0.1.248 8001
+  434  curl -I https://localhost
+  435  curl -I http://localhost
+  436  curl -I http://localhost:8001
+  437  curl -I https://localhost:8001
+  438  curl -I http://10.0.1.248:8001
+  439  docker ps
+  440  docker stop 60620800dda6
+  441  ls
+  442  source venv/bin/activate
+  443  cd expense_report/
+  444  ls
+  445  cat nginx.conf 
+  446  systemctl start expense-report-webapp.service 
+  447  sudo systemctl start expense-report-webapp.service 
+  448  systemctl status expense-report-webapp.service
+  449  sudo systemctl start nginx
+  450  systemctl status expense-report-webapp.service
+  451  sudo systemctl status nginx
+  452  sudo systemctl start expense-report-webapp.service 
+  453  systemctl status expense-report-webapp.service
+  454  sudo nano /etc/systemd/system/expense-report-webapp.service
+  455  ls /home/opc/venv/bin/gunicorn
+  456  sudo chmod +x /home/opc/venv/bin/gunicorn
+  457  cat /etc/systemd/system/expense-report-webapp.service
+  458  journalctl -u expense-report-webapp.service
+  459  sudo systemctl daemon-reload
+  460  sudo systemctl start expense-report-webapp.service 
+  461  systemctl status expense-report-webapp.service
+  462  sudo nano /etc/systemd/system/expense-report-webapp.service
+  463  sudo systemctl daemon-reload
+  464  sudo systemctl start expense-report-webapp.service 
+  465  systemctl status expense-report-webapp.service
+  466  ls -l /home/opc/venv/bin/gunicorn
+  467  exit
+  468  source /home/opc/venv/bin/activate
+  469  which gunicorn
+  470  source /home/opc/venv/bin/activate
+  471  which gunicorn
+  472  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8001
+  473  ls
+  474  cd expense_report/
+  475  ls
+  476  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8001
+  477  sudo nano /etc/systemd/system/expense-report-webapp.service
+  478  sudo systemctl daemon-reload
+  479  sudo systemctl start expense-report-webapp.service
+  480  systemctl status expense-report-webapp.service
+  481  sudo nano /etc/systemd/system/expense-report-webapp.service
+  482  sudo systemctl start expense-report-webapp.service
+  483  systemctl status expense-report-webapp.service
+  484  sudo systemctl start expense-report-webapp.service
+  485  systemctl status expense-report-webapp.service
+  486  journalctl -u expense-report-webapp.service
+  487  journalctl -u expense-report-webapp.service -tail
+  488  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8001
+  489  cat /etc/nginx/nginx.conf
+  490  cat /etc/pki/nginx/server.crt
+  491  sudo systemctl start expense-report-webapp.service
+  492  systemctl status expense-report-webapp.service
+  493  journalctl -u expense-report-webapp.service ls /etc/nginx/sites-available/
+  494  cat /etc/nginx/sites-available/your-site-config
+  495  ls /etc/nginx/sites-available/
+  496  cat /etc/nginx/sites-available/your-site-config
+  497  journalctl -u expense-report-webapp.service -p err -n 10
+  498  cat /etc/nginx/sites-available/expenseapp
+  499  sudo nano /etc/systemd/system/expense-report-webapp.service
+  500  sudo systemctl daemon-reload
+  501  sudo systemctl start expense-report-webapp.service
+  502  sudo systemctl status expense-report-webapp.service
+  503  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  504  journalctl -u expense-report-webapp.service
+  505  journalctl -u expense-report-webapp.service -e
+  506  source /home/opc/venv/bin/activate
+  507  cd /home/opc/expense_report
+  508  /home/opc/venv/bin/gunicorn app:app --workers 2 --bind 0.0.0.0:8001
+  509  sudo nano /etc/systemd/system/expense-report-webapp.service
+  510  sudo systemctl daemon-reload
+  511  sudo systemctl start expense-report-webapp.service
+  512  sudo systemctl enable expense-report-webapp.service
+  513  sudo systemctl status expense-report-webapp.service
+  514  sudo chown -R opc:nginx /home/opc/expense_report
+  515  sudo chmod -R 755 /home/opc/expense_report
+  516  sudo chmod 644 /etc/systemd/system/expense-report-webapp.service
+  517  sudo chown root:root /etc/systemd/system/expense-report-webapp.service
+  518  sudo systemctl start expense-report-webapp.service
+  519  sudo systemctl status expense-report-webapp.service
+  520  sudo nano /etc/systemd/system/expense-report-webapp.service
+  521  sudo systemctl daemon-reload
+  522  sudo systemctl start expense-report-webapp.service
+  523  sudo systemctl status expense-report-webapp.service
+  524  sudo nano /etc/systemd/system/expense-report-webapp.service
+  525  sudo systemctl daemon-reload
+  526  sudo systemctl start debugging.service
+  527  sudo systemctl start expense-report-webapp.service
+  528  sudo systemctl status expense-report-webapp.service
+  529  cat /tmp/debug.log
+  530  sudo nano /etc/systemd/system/expense-report-webapp.service
+  531  sudo systemctl daemon-reload
+  532  sudo systemctl start expense-report-webapp.service
+  533  sudo systemctl status expense-report-webapp.service
+  534  sudo nano /etc/systemd/system/expense-report-webapp.service
+  535  sudo systemctl start expense-report-webapp.service
+  536  sudo systemctl daemon-reload
+  537  sudo systemctl start expense-report-webapp.service
+  538  sudo systemctl status expense-report-webapp.service
+  539  ls -l /usr/bin/env
+  540  sudo nano /etc/systemd/system/expense-report-webapp.service
+  541  sudo systemctl daemon-reload
+  542  sudo systemctl start expense-report-webapp.service
+  543  sudo systemctl status expense-report-webapp.service
+  544  cat /tmp/environment.log
+  545  ls
+  546  cat app.py 
+  547  sudo nano /etc/systemd/system/expense-report-webapp.service
+  548  sudo systemctl daemon-reload
+  549  sudo systemctl start expense-report-webapp.service
+  550  sudo systemctl status expense-report-webapp.service
+  551  journalctl -u expense-report-webapp.service -e
+  552  ls
+  553  history
+  554   sudo systemctl status expense-report-webapp.service
+  555  docker ps
+  556  docker ps -l
+  557  sudo systemctl status nginx
+  558  cat /etc/systemd/system/expense-report-webapp.service
+  559  cat /etc/nginx/sites-available/expense_report
+  560  cat /etc/nginx/sites-enabled/expense_report
+  561  history
+  562  cat /etc/systemd/system/expense-report-webapp.service
+  563  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  564  sudo nano /etc/nginx/sites-available/expenseapp
+  565  sudo journalctl -u expense-report-webapp.service
+  566  sudo journalctl -u expense-report-webapp.service -n 20
+  567  cat /etc/systemd/system/expense-report-webapp.service
+  568  source /home/opc/venv/bin/activate
+  569  gunicorn --version
+  570  cd /home/opc/expense_report
+  571  cat /etc/nginx/nginx.conf
+  572  sudo nanao /etc/nginx/nginx.conf
+  573  sudo nano /etc/nginx/nginx.conf
+  574  sudo nano /etc/nginx/sites-available/expenseapp
+  575  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  576  sudo mkdir -p /etc/nginx/sites-enabled
+  577  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  578  ls -l /etc/nginx/sites-enabled
+  579  cat /etc/nginx/sites-enabled
+  580  sudo rm /etc/nginx/sites-enabled
+  581  sudo mkdir -p /etc/nginx/sites-enabled
+  582  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  583  sudo nano /etc/nginx/nginx.conf
+  584  sudo nginx -t  # Test the configuration for syntax errors
+  585  sudo systemctl reload nginx  # Reload Nginx to apply changes
+  586  cat /etc/nginx/nginx.conf
+  587  cat /etc/nginx/sites-enabled/expenseapp
+  588  sudo nano /etc/nginx/nginx.conf
+  589  sudo nginx -t  # Test the configuration for syntax errors
+  590  sudo systemctl reload nginx  # Reload Nginx to apply changes
+  591  sudo tail -f /var/log/nginx/error.log
+  592  ls
+  593  cd templates/
+  594  ls
+  595  pwd
+  596  sudo nano /etc/nginx/nginx.conf
+  597  sudo nano etc/nginx/sites-available/expenseapp
+  598  cd etc/nginx/sites-available
+  599  cd /etc/nginx/sites-available
+  600  ls
+  601  sudo nano expenseapp
+  602  sudo ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  603  sudo nginx -t
+  604  ls -l /etc/nginx/sites-enabled/expenseapp
+  605  sudo nano /etc/nginx/sites-available/expenseapp
+  606  sudo nginx -t
+  607  sudo systemctl reload nginx
+  608  sudo tail -f /var/log/nginx/error.log
+  609  sudo sestatus
+  610  sudo setsebool -P httpd_can_network_connect 1
+  611  sudo firewall-cmd --list-all
+  612  grep -r "server_name expenseapp.devopschad.com" /etc/nginx/
+  613  sudo tail -f /var/log/nginx/error.log
+  614  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  615  sudo nginx -t
+  616  sudo systemctl reload nginx
+  617  sudo tail -f /var/log/nginx/error.log
+  618  sudo setenforce 0
+  619  sudo getenforce
+  620  sudo systemctl restart nginx
+  621  sudo systemctl status expense-report-webapp.service
+  622  sudo systemctl start expense-report-webapp.service
+  623  sudo systemctl status expense-report-webapp.service
+  624  sudo tail -f /var/log/nginx/error.log
+  625  sudo systemctl status expense-report-webapp.service
+  626  sudo tail -f /var/log/nginx/error.log
+  627  sudo getenforce
+  628  sudo nano /etc/systemd/system/expense-report-webapp.service
+  629  sudo systemctl daemon-reload
+  630  sudo systemctl restart expense-report-webapp.service
+  631  sudo systemctl status expense-report-webapp.service
+  632  sudo nano /etc/nginx/sites-available/expenseapp
+  633  sudo nginx -t
+  634  sudo systemctl reload nginx
+  635  sudo tail -f /var/log/nginx/error.log
+  636  sudo setenforce 1
+  637  sudo getenforce  # Should return 'Enforcing'
+  638  sudo setsebool -P httpd_can_network_connect 1
+  639  sudo semanage port -l | grep -E 'http_port_t|ssh_port_t'
+  640  sudo setenforce 0
+  641  sudo getenforce
+  642  history
+  643  sudo tail -f /var/log/nginx/error.log
+  644  sudo systemctl reload nginx
+  645  sudo systemctl restart expense-report-webapp.service
+  646  sudo firewall-cmd --list-all
+  647  ls /etc/letsencrypt/live
+  648  sudo ls /etc/letsencrypt/live
+  649  cat expenseapp 
+  650  ls
+  651  sudo ls /etc/letsencrypt/live
+  652  cd /etc/letsencrypt/live
+  653  sudo cd /etc/letsencrypt/live
+  654  ls
+  655  sudo cat (venv) [opc@testinstance sites-available]$ sudo ls /etc/letsencrypt/live
+  656  sudo cat expenseapp.devopschad.com 
+  657  sudo ls /etc/letsencrypt/live
+  658  sudo ls /etc/letsencrypt/live/expenseapp.devopschad.com
+  659  sudo nano /etc/nginx/sites-available/expenseapp
+  660  sudo nginx -t
+  661  sudo systemctl reload nginx
+  662  ls
+  663  docker ps
+  664  docker ps -l
+  665  history
+  666  sudo systemctl stop nginx
+  667  sudo systemctl stop expense-report-webapp.service
+  668  sudo docker start quizzical_mclean
+  669  sudo docker exec -it quizzical_mclean /bin/bash
+  670  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com quizzical_mclean:/etc/letsencrypt/live/
+  671  sudo docker cp /etc/letsencrypt/archive/expenseapp.devopschad.com quizzical_mclean:/etc/letsencrypt/archive/
+  672  sudo docker cp /etc/letsencrypt/keys quizzical_mclean:/etc/letsencrypt/
+  673  sudo docker cp /etc/letsencrypt/renewal quizzical_mclean:/etc/letsencrypt/
+  674  sudo docker exec -it quizzical_mclean /bin/bash
+  675  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  676  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  677  sudo docker exec -it quizzical_mclean /bin/bash
+  678  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  679  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  680  sudo docker cp /etc/letsencrypt/archive/expenseapp.devopschad.com/fullchain1.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  681  sudo docker cp /etc/letsencrypt/archive/expenseapp.devopschad.com/privkey1.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  682  sudo docker exec -it quizzical_mclean /bin/bash
+  683  sudo docker restart quizzical_mclean
+  684  docker ps
+  685  sudo docker exec -it quizzical_mclean /bin/bash
+  686  sudo docker ps -a
+  687  ls
+  688  sudo docker exec -it quizzical_mclean /bin/bash
+  689  sudo docker cp /etc/letsencrypt/archive/expenseapp.devopschad.com/fullchain1.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  690  sudo docker cp /etc/letsencrypt/archive/expenseapp.devopschad.com/privkey1.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  691  echo "
+  692  server {
+  693      listen 80;
+  694      server_name expenseapp.devopschad.com;
+  695      # Redirect all HTTP requests to HTTPS
+  696      return 301 https://\$host\$request_uri;
+  697  }
+  698  server {
+  699      listen 443 ssl;
+  700      server_name expenseapp.devopschad.com;
+  701      ssl_certificate /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem;
+  702      ssl_certificate_key /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem;
+  703      ssl_protocols TLSv1.2 TLSv1.3;
+  704      ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384';
+  705      access_log /var/log/nginx/expenseapp.access.log;
+  706      error_log /var/log/nginx/expenseapp.error.log;
+  707      location / {
+  708          proxy_pass http://localhost:8001;
+  709          proxy_set_header Host \$host;
+  710          proxy_set_header X-Real-IP \$remote_addr;
+  711          proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+  712          proxy_set_header X-Forwarded-Proto \$scheme;
+  713      }
+  714  }
+  715  " > /etc/nginx/sites-available/expenseapp
+  716  sudo docker exec -it quizzical_mclean /bin/bash
+  717  cat /etc/nginx/nginx.conf
+  718  cat /etc/nginx/sites-available/expenseapp
+  719  sudo docker exec -it quizzical_mclean /bin/bash
+  720  sudo docker stop quizzical_mclean
+  721  sudo docker cp /etc/nginx/nginx.conf quizzical_mclean:/etc/nginx/nginx.conf
+  722  sudo docker cp /etc/nginx/sites-available/expenseapp quizzical_mclean:/etc/nginx/sites-available/expenseapp
+  723  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  724  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  725  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/chain.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/chain.pem
+  726  sudo docker cp /etc/letsencrypt/live/expenseapp.devopschad.com/cert.pem quizzical_mclean:/etc/letsencrypt/live/expenseapp.devopschad.com/cert.pem
+  727  clear
+  728  docker exec quizzical_mclean ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  729  sudo docker start quizzical_mclean
+  730  sudo docker exec quizzical_mclean ln -s /etc/nginx/sites-available/expenseapp /etc/nginx/sites-enabled/
+  731  docker ps
+  732  docker ps -l
+  733  docker start quizzical_mclean
+  734  docker ps
+  735  docker ps -l
+  736  sudo docker logs quizzical_mclean
+  737  ls
+  738  cd
+  739  ls
+  740  cd expense_report/
+  741  ls
+  742  cat Dockerfile
+  743  docker ps
+  744  ls
+  745  rm Dockerfile
+  746  ls
+  747  docker pull tsmith4014/expense_report
+  748  ls
+  749  docker pull tsmith4014/expense_report:letterhead
+  750  ls
+  751  docker images
+  752  docker rmi tsmith4014/expense_report:letterhead
+  753  docker ps -l
+  754  docker rm 60620800dda6
+  755  docker rmi -f tsmith4014/expense_report:letterhead
+  756  docker pull tsmith4014/expense_report:letterhead
+  757  docker run -d --restart=always -p 8001:80 tsmith4014/expense_report:letterhead
+  758  docker ps
+  759  sudo docker exec -it lucid_brahmagupta /bin/bash
+  760  docker ps
+  761  docker stop da5b47cfbcd5
+  762  history
+  763  sudo systemctl restart nginx
+  764  sudo systemctl restart expense-report-webapp.service
+  765  sudo systemctl status expense-report-webapp.service
+  766  sudo systemctl status nginx
+  767  ls
+  768  cd templates/
+  769  ls
+  770  rm index.html 
+  771  ls
+  772  nano index.html
+  773  ls
+  774  pwd
+  775  scp -r -i /path/to/selfs.key /Users/chadthompsonsmith/Oracle_Cloud/expense_report/templates opc@132.145.210.86:/home/opc/expense_report/
+  776  ls
+  777  sudo systemctl restart nginx
+  778  sudo systemctl restart expense-report-webapp.service
+  779  ls
+  780  cat index.html 
+  781  ls
+  782  cd ..
+  783  ls
+  784  cat app.py 
+  785  ls
+  786  rm app.py 
+  787  nano app.py
+  788  sudo systemctl restart expense-report-webapp.service
+  789  sudo systemctl restart nginx
+  790  history
+  791  sudo systemctl status expense-report-webapp.service
+  792  sudo systemctl status nginx
+  793  ls
+  794  cd expense_report/
+  795  ls
+  796  cat populate_excel.py 
+  797  nano populate_excel.py 
+  798  history
+  799  sudo systemctl restart expense-report-webapp.service
+  800  sudo systemctl status expense-report-webapp.service
+  801  sudo systemctl status nginx
+  802  sudo journalctl -u expense-report-webapp.service -f
+  803  sudo tail -f /var/log/nginx/access.log
+  804  sudo tail -f /var/log/nginx/error.log
+  805  ls
+  806  cat populate_excel.py 
+  807  sudo tail -f /var/log/nginx/error.log
+  808  sudo tail -f /var/log/nginx/access.log
+  809  sudo journalctl -u expense-report-webapp.service -f
+  810  sudo tail -f /var/log/nginx/access.log
+  811  sudo tail -f /var/log/nginx/error.log
+  812  ls
+  813  cat populate_excel.py 
+  814  cat app.py 
+  815  nano app.py 
+  816  sudo systemctl restart expense-report-webapp.service
+  817  sudo systemctl status expense-report-webapp.service
+  818  sudo tail -f /var/log/nginx/error.log
+  819  nano populate_excel.py 
+  820  sudo systemctl restart expense-report-webapp.service
+  821  sudo systemctl status expense-report-webapp.service
+  822  sudo tail -f /var/log/nginx/error.log
+  823  sudo journalctl -u expense-report-webapp.service -f
+  824  sudo tail -f /var/log/nginx/error.log
+  825  ls
+  826  cat app.log
+  827  ls
+  828  cat populate_excel.log 
+  829  ls 
+  830  nano populate_excel.py 
+  831  mv ea.jpg eahead.jpg
+  832  nano app.py 
+  833  cat app.py
+  834  cat populate_excel.py 
+  835  ls
+  836  cat app.log
+  837  ls
+  838  pwd
+  839  mkdir static
+  840  ls
+  841  mv devops-icon.png /templates
+  842  sudo mv devops-icon.png /templates
+  843  ls
+  844  cd static
+  845  pwd
+  846  ls
+  847  history
+  848  pwd
+  849  ls
+  850  ls -l
+  851  cd ..
+  852  ls
+  853  cat /templates 
+  854  ls
+  855  ls -l /templates 
+  856  cd templates/
+  857  ls
+  858  cd ..
+  859  ls -l /static
+  860  ls
+  861  cd static/
+  862  ls
+  863  history
+  864  ls
+  865  cd ..
+  866  ls
+  867  cd templates/
+  868  ls
+  869  ls -l
+  870  ls
+  871  cd ..
+  872  ls
+  873  cd static/
+  874  ls
+  875  cd ..
+  876  ls
+  877  nano app.py
+  878  sudo systemctl restart expense-report-webapp.service
+  879  cat app.py 
+  880  ls
+  881  ls /static
+  882  cd static/
+  883  ls
+  884  mv devops-icon.png favicon.ico
+  885  ls
+  886  cd ..
+  887  ls
+  888  cd templates/
+  889  ls
+  890  nano index.html 
+  891  sudo systemctl restart expense-report-webapp.service
+  892  nano instructions.html 
+  893  nano index.html 
+  894  sudo systemctl restart expense-report-webapp.service
+  895  ls
+  896  nano privacy.html 
+  897  sudo systemctl restart expense-report-webapp.service
+  898  ls
+  899  cd ..
+  900  ls
+  901  cd static/
+  902  ls
+  903  pwd
+  904  wget https://www.devopschad.com/favicon.ico
+  905  wget https://www.devopschad.com/static/images/favicon.ico
+  906  curl -O https://www.devopschad.com/static/images/favicon.ico
+  907  ls
+  908  cd ..
+  909  ls
+  910  cat /etc/nginx/nginx.conf
+  911  cat etc/nginx/sites-enabled/
+  912  cd etc/nginx/sites-enabled/
+  913  ls
+  914  cd ..
+  915  ls
+  916  source venv/bin/activate
+  917  cd etc/nginx/sites-enabled/
+  918  cd etc/nginx
+  919  pwd
+  920  ls
+  921  cd expense_report/
+  922  ls
+  923  sudo find / -name nginx.conf
+  924  sudo nano /etc/nginx/nginx.conf
+  925  cat /etc/nginx/nginx.conf
+  926  ls /etc/nginx/conf.d/
+  927  ls /etc/nginx/sites-enabled/
+  928  clear
+  929  sudo nano /etc/nginx/conf.d/expenseapp.conf
+  930  sudo cat /etc/nginx/conf.d/expenseapp.conf
+  931  sudo nano /etc/nginx/sites-enabled/expenseapp
+  932  sudo cat /etc/nginx/sites-enabled/expenseapp
+  933  sudo openssl x509 -in /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem -text -noout
+  934  sudo openssl rsa -in /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem -check
+  935  cat /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  936  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/fullchain.pem
+  937  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/private.pem
+  938  sudo cat /etc/letsencrypt/live/expenseapp.devopschad.com/privkey.pem
+  939  netstat -an | grep 8001
+  940  ss -tuln | grep 8001
+  941  docker ps
+  942  docker ps -l
+  943  history
+  944  sudo systemctl stop  nginx
+  945  sudo systemctl status  nginx
+  946  sudo systemctl status expense-report-webapp.service
+  947  sudo systemctl stop expense-report-webapp.service
+  948  sudo systemctl status expense-report-webapp.service
+  949  docker ps -l
+  950  docker start da5b47cfbcd5
+  951  docker ps
+  952  docker os
+  953  clear
+  954  docker ps
+  955  docker logs da5b47cfbcd5
+  956  sudo nano /etc/nginx/sites-enabled/expenseapp
+  957  sudo cat /etc/nginx/sites-enabled/expenseapp
+  958  sudo iptables -L -n -v
+  959  sudo systemctl restart nginx
+  960  sudo nano /etc/nginx/sites-enabled/expenseapp
+  961  sudo systemctl restart  nginx
+  962  sudo systemctl status  nginx
+  963  sudo cat /etc/nginx/sites-enabled/expenseapp
+  964  sudo nano /etc/nginx/sites-enabled/expenseapp
+  965  sudo nginx -t
+  966  sudo systemctl restart nginx
